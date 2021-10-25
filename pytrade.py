@@ -52,6 +52,7 @@ def ws_thread(*args):
     global BTCPRICE
     BTCPRICE = 'Connected and Subscribed'
     ws = websocket.WebSocketApp("wss://ws.kraken.com/", on_open = ws_open, on_message = ws_message)
+    # authws = websocket.WebSocketApp("wss://ws-auth.kraken.com/", on_open = ws_open, on_message = ws_message)
     ws.run_forever()
 
 # Define WebSocket callback functions
@@ -76,10 +77,12 @@ def ws_open(ws):
 # while True:
 #     time.sleep(5)
 #     print("Main thread: %d" % time.time())
-
+_thread.start_new_thread(ws_thread, ())
+WSSTARTED = True
 if __name__ == "__main__":
     # import webbrowser
     # webbrowser.open("http://127.0.0.1:5000/")
     app.run(debug=True, host='0.0.0.0')
     app.debug = True
     app.secret_key = 'WX78654H'
+    
