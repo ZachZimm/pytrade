@@ -1,0 +1,67 @@
+.main {
+    /* font-size: x-large; */
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+    background-color: #292929;
+}
+.textfield {
+    background-color: #434345 ;
+    color:#c4d0ff;
+}
+.button {
+    background-color: #5c5c5d ;
+    color:#c4d0ff;
+    /* color: #EDEDED; */
+    
+}
+.plotframe {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding: 1%;
+}
+.header{
+    background: #606c88; /* Old browsers */
+    background: -moz-linear-gradient(top, #606c88 0%, #3f4c6b 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, #606c88 0%,#3f4c6b 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, #606c88 0%,#3f4c6b 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    display: flex;
+   /* let's align the items so everything is nice and centered */
+    align-items: center;
+    /* justify-content: left; */
+    justify-content: space-evenly;
+    /* justify-content:space-between; */
+     
+}
+.header.a, a:hover, a:visited, a:active {
+    color: #c4d0ff;
+    text-decoration: none;
+   }
+.headertext {
+    color:#c4d0ff;
+    text-decoration: none;
+}
+.headeritem {
+    /* padding-left: .1em; */
+    /* padding-right: .1em; */
+    display: flex;
+    flex: auto;
+}
+.headerlist {
+    display: flex;
+    flex-direction: column;
+}
+head {
+    font-size: x-large;
+    background-color: red;
+}
+h1 {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: rgb(37, 37, 37);
+}
+img {
+    width: 49%;
+    height: auto;
+    /* border-style: groove; */
+}

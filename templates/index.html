@@ -1,0 +1,29 @@
+<script src="pytrade.py"></script>
+<html class="main">
+    {% block header %}<head></head>{% endblock %}
+    {% block content %}
+    <body>
+        <link rel= "stylesheet" type= "text/css" href="/static/styles/app.css">
+        <div class="header">
+            <div class="headeritem">
+                <h1><a class='headertext' href="/">&lambda; PyTrade</a></h1>
+            </div>
+            <div class="headeritem">
+                <form method="POST" action="{{url_for('index')}}" >
+                    <input class="textfield" type="text" name="ts"/>
+                    <input class="button" type="submit" value="download data"/>
+                </form>
+            </div>
+            <div class='headeritem'><h2 ><a class='headertext' href="/kraken">Kraken</a></h2></div>
+        </div>
+        <div class="plotframe">
+            <img src="https://zachzimm.pythonanywhere.com/mplfinance-BTC-USD-2016.png"
+                alt="mplfinance"
+                width="40%" >
+            <img src="https://zachzimm.pythonanywhere.com/mplfinance-SPY-2008.png"
+                alt="mplfinance"
+                width="40%" >
+        </div>
+    </body>
+    {% endblock %}
+</html>
