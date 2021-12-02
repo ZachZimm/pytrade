@@ -9,8 +9,12 @@
                 <h1><a class='headertext' href="/kraken">&lambda; PyTrade</a></h1>
             </div>
             <div class="headerlist">
-                <div class="headeritem"><h3 class="headertext">{{ticker}} : {{price}}</h3></div>
-                <div class="headeritem"><h3 class="headertext">ETH/XBT : {{ethbtc}}</h3></div>
+                <div class="headeritem"> <h3 class="lastprice">BTC_HI</h3> <h3 class="lastprice">{{xbtusd.high}}</h3> </div>
+                <div class="headeritem"> <h3 class="lastprice">BTC_LO</h3> <h3 class="lastprice">{{xbtusd.low}}</h3> </div>
+                <div class="headeritem"> <h3 class="lastprice">E/B_HI</h3> <h3 class="lastprice">{{ethbtc.high}}</h3> </div>
+                <div class="headeritem"> <h3 class="lastprice">E/B_LO</h3> <h3 class="lastprice">{{ethbtc.low}}</h3> </div>
+                <div class="headeritem"> <h3 class="lastprice">ETH_HI</h3> <h3 class="lastprice">{{ethusd.high}}</h3> </div>
+                <div class="headeritem"> <h3 class="lastprice">ETH_LO</h3> <h3 class="lastprice">{{ethusd.low}}</h3> </div>
             </div>
             
             <!-- <div class="headeritem"><embed src="/lastprice"></embed></div> -->
@@ -20,14 +24,15 @@
                 </form> -->
             </div>
         </div>
-        <div class="plotframe">
-            <img src="https://zachzimm.pythonanywhere.com/mplfinance-BTC-USD-2016.png"
+        <!-- <div class="plotframe">
+            <img src="https://zachzimm.pythonanywhere.com/mplfinance2-ETH.USD-2021.1.1-2025.11.24-risk%20riskscatter.png"
                 alt="mplfinance"
                 width="40%" >
-            <img src="https://zachzimm.pythonanywhere.com/mplfinance-ETH-BTC-2020.png"
+            <img src="https://zachzimm.pythonanywhere.com/mplfinance2-ETH.BTC-2021.1.1-2025.11.24-risk%20riskscatter.png"
                 alt="mplfinance"
                 width="40%" >
-        </div>
+        </div> -->
+        {{ethusd.history}}
     </body>
     {% endblock %}
 </html>

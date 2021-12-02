@@ -4,6 +4,7 @@
     flex-direction: column;
     justify-content: top;
     background-color: #292929;
+    color:#c4d0ff;
 }
 .textfield {
     background-color: #434345 ;
@@ -43,14 +44,18 @@
     text-decoration: none;
 }
 .headeritem {
-    /* padding-left: .1em; */
-    /* padding-right: .1em; */
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-top: 0em;
+    padding-bottom: 0em;
     display: flex;
+    flex-direction: column;
     flex: auto;
+    color: #c4d0ff;
 }
 .headerlist {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
 }
 head {
     font-size: x-large;
@@ -64,4 +69,8 @@ img {
     width: 49%;
     height: auto;
     /* border-style: groove; */
+}
+.lastprice {
+    text-align: center;
+    color: #c4d0ff;
 }
