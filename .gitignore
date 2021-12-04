@@ -5,3 +5,4 @@ data/*
 data/*.csv
 secret
 workspace.code-workspace
+stat/

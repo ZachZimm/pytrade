@@ -149,8 +149,10 @@ if __name__ == "__main__":
                                                                         # something to do with reloading running code on save, who'd have known?
 
 # TODO
+# Download data from Kraken - or TradingView
+# Get the old app.css from github and use that. Rename this one to index.css or somehing, there might be a change needed in chart.py
+# Refactor OHLC(TV) class into another file
 # Record volume - which one is it in the trade message?
-# Download data from Kraken
 # Test with charts, maybe I'll follow Derek and use Plotly
 # Get indicators / signals working
 # Connect to Kraken with credentials

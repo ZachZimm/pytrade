@@ -4,12 +4,24 @@
     flex-direction: column;
     justify-content: top;
     background-color: #292929;
-    color:#c4d0ff;
 }
 .textfield {
     background-color: #434345 ;
     color:#c4d0ff;
 }
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #c4d0ff;
+    opacity: 0.6; /* Firefox */
+
+  }
+  
+  :-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: red;
+  }
+  
+  ::-ms-input-placeholder { /* Microsoft Edge */
+    color: red;
+  }
 .button {
     background-color: #5c5c5d ;
     color:#c4d0ff;
@@ -31,9 +43,10 @@
    /* let's align the items so everything is nice and centered */
     align-items: center;
     /* justify-content: left; */
-    justify-content: space-evenly;
-    /* justify-content:space-between; */
-     
+    /* justify-content: space-evenly; */
+    justify-content:space-between;
+    
+    
 }
 .header.a, a:hover, a:visited, a:active {
     color: #c4d0ff;
@@ -45,17 +58,17 @@
 }
 .headeritem {
     padding-left: 1em;
-    padding-right: 1em;
-    padding-top: 0em;
-    padding-bottom: 0em;
-    display: flex;
-    flex-direction: column;
-    flex: auto;
-    color: #c4d0ff;
+    padding-right: 25em;
+    justify-content:start;
 }
-.headerlist {
-    display: flex;
-    flex-direction: row;
+.secondheader {
+    background: #606c88;
+    width: 100%;
+    display:flex;
+    flex-wrap: wrap;
+    flex-direction:row;
+    justify-content: space-between;
+
 }
 head {
     font-size: x-large;
@@ -66,11 +79,7 @@ h1 {
     color: rgb(37, 37, 37);
 }
 img {
-    width: 49%;
+    width: 70%;
     height: auto;
     /* border-style: groove; */
-}
-.lastprice {
-    text-align: center;
-    color: #c4d0ff;
 }
