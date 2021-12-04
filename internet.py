@@ -18,7 +18,7 @@ def internet(host="8.8.8.8", port=53, timeout=3):
         is_connected = 1
     except socket.error as ex:
         print(ex)
-        print(date_time + ' - Internet connection lost!')
+        print('Internet connection lost!')
     with open('stat/' + 'is_connected' + '.csv', 'a') as data:
         while True:
             newtime = datetime.now(tz=pytz.UTC)
