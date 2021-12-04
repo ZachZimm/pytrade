@@ -19,13 +19,14 @@ def internet(host="8.8.8.8", port=53, timeout=3):
     except socket.error as ex:
         print(ex)
         print('Internet connection lost!')
+        time.sleep(4) # To better keep the schedule after a timeout
     with open('stat/' + 'is_connected' + '.csv', 'a') as data:
         while True:
             newtime = datetime.now(tz=pytz.UTC)
             # start_interval_minutes = 1
-            # if(((int(minutes) % start_interval) == 0) and seconds == "00" and int(millis) == 0) # use this when start_interval > 1
+            # if((newtime.minute % start_interval_minutes) == 0 and (newtime.second % 5) == 0 and newtime.microsecond <= 1000): # use this when start_interval > 1
             if(newtime.second % 5 == 0) and (newtime.microsecond <= 1000):
-                date_time = newtime.strftime("%Y/%m/%d %H:%M:%S.%f")
+                date_time = newtime.strftime("%Y-%m-%d %H:%M:%S.%f")
                 data.write(date_time + ',' + str(is_connected) + ',\n')
                 break
         if(is_connected == 1):
@@ -49,7 +50,7 @@ def start():
             break
     
     scheduler.start()
-    date_time = newtime.strftime("%Y/%m/%d %H:%M:%S.%f")
+    date_time = newtime.strftime("%Y-%m-%d %H:%M:%S.%f")
     print(date_time + ' - Testing started!')
     while True:
         time.sleep(5)

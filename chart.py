@@ -14,6 +14,7 @@ import yfinance
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import datetime as dt
+import dateutil
 import mplfinance as mpf
 
 app = Flask(__name__)
@@ -73,14 +74,27 @@ def index():
 @app.route("/stat",methods=["POST","GET"])
 def stat():
     _data = get_stat_df_from_csv('is_connected')
-    
     return plot_svg(_data)
 
 @app.route("/matplot-as-image-<int:num_x_points>.svg")
 def plot_svg(data):
-    fig = Figure()
-    axis = fig.add_subplot(1, 1, 1)
-    axis.plot(data['Date'], data['is_connected'])
+    s = mpf.make_mpf_style(base_mpf_style='yahoo', rc={'font.size': 16, 'text.color': '#c4d0ff',
+                            'axes.labelcolor':'#c4d0ff', 'xtick.color':'#c4d0ff', 'ytick.color':'#c4d0ff'},
+                            facecolor="#434345", edgecolor="#000000", figcolor="#292929", y_on_right=False) 
+    fig = mpf.figure(figsize=(12, 8), style=s)
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0.2)
+    
+    # axis = fig.add_subplot(1, 1, 1)
+    axis = fig.gca()
+    dates = [dateutil.parser.parse(s) for s in data['Date']]
+    axis.plot(dates, data['is_connected'], "")
+    axis.set_xticklabels(axis.get_xticks(), rotation = 25)
+    axis.set_xticks(dates)
+
+    date_form = mdates.DateFormatter("%Y-%m-%d %H:%M:%S")
+    axis.xaxis.set_major_formatter(date_form)
+    axis.xaxis.set_major_locator(mdates.HourLocator(interval=1)) # I need to figure out how to set this dynamically
 
     output = io.BytesIO()
     FigureCanvasSVG(fig).print_svg(output)
@@ -100,7 +114,6 @@ def plot_png(num_x_points=50):
 @app.route("/mplfinance-<string:ticker>-<int:syear>.png", methods=["POST","GET"]) # No longer used
 def plot_finance(ticker='AAPL', syear=2010):
     output = io.BytesIO()
-    
         
     # indicators = ['risk','riskscatter'] 
     indicators = [ 'risk','riskscatter', 'sma'] #'riskdif']
@@ -393,6 +406,6 @@ def mplfinance_plot(df, ticker, indicators, chart_type, syear, smonth, sday, eye
 if __name__ == "__main__":
     # import webbrowser
     # webbrowser.open("http://127.0.0.1:5000/")
-    app.run(debug=True, host='0.0.0.0',port=3000)
+    app.run(debug=True, host='0.0.0.0',port=8080)
     app.debug = True
     app.secret_key = 'WX78654H'

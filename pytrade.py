@@ -52,16 +52,15 @@ class OHLC:
         self.trades = self.trades + 1
         self.no_trades = False
     
-    def new_candle(self):
+    def new_candle(self, _datetime):
         if(self.no_trades):
             self.open = self.prev_close
             self.close = self.prev_close
             self.low = self.prev_close
             self.high = self.prev_close
-        newtime = datetime.now(tz=pytz.UTC)
         if(self.close != 0.0): # If this was the first candle and there were no trades, it's probably better to skip the candle than plot 0
-            new_candle = pd.Series([newtime, self.open, self.high, self.low, self.close, self.volume, self.trades], index=['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Trades'])
-            self.history.loc[newtime] = new_candle
+            new_candle = pd.Series([_datetime, self.open, self.high, self.low, self.close, self.volume, self.trades], index=['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Trades'])
+            self.history.loc[_datetime] = new_candle
         self.open = 0.0
         self.high = 0.0
         self.low = sys.float_info.max
@@ -97,11 +96,14 @@ def kraken():
             WSSTARTED = True
     return render_template("kraken.html", ticker="XBT/USD", xbtusd=BTCUSD, ethbtc=ETHBTC, ethusd=ETHUSD)
 
-def new_candle(): 
+def new_candle(first_run=False, _datetime=''):
+    _datetime = datetime.now(tz=pytz.UTC)
+    if(first_run):
+        _datetime = _datetime 
     print("New Candle!")
-    BTCUSD.new_candle()
-    ETHBTC.new_candle()
-    ETHUSD.new_candle()
+    BTCUSD.new_candle(_datetime)
+    ETHBTC.new_candle(_datetime)
+    ETHUSD.new_candle(_datetime)
 
 def ws_thread(*args):
     global BTCPRICE
@@ -138,12 +140,18 @@ WSSTARTED = True
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(new_candle, 'interval', seconds=300) # call new_candle every x seconds
+start_interval_minutes = 5 # Should probably be ^ seconds ^ divided by 60
+while True: # This nonsense is just to get perfect timing on the new candles
+    newtime = datetime.now(tz=pytz.UTC)
+    if((newtime.minute % start_interval_minutes) == 0 and newtime.second == 0 and newtime.microsecond <= 1000):
+        break
 scheduler.start()
+new_candle(True, newtime)
 logging.getLogger('apscheduler.executors.default').propagate = False
 logging.getLogger('apscheduler.scheduler').propagate = False
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False, host='0.0.0.0', port=8080) # I don't know what the side effects of use_reloader=False are. It's here because apparently
+    app.run(debug=True, use_reloader=False, host='0.0.0.0', port=3000) # I don't know what the side effects of use_reloader=False are. It's here because apparently
     app.debug = True                                                    # in debug mode, flask initializes twice and that was causing double the output, which was
     app.secret_key = 'WX78654H'                                         # a bit annoying. And use_reloader=False was the first fix I found. Apparently it has
                                                                         # something to do with reloading running code on save, who'd have known?
