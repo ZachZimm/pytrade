@@ -3,6 +3,6 @@
 __pycache__/
 data/*
 data/*.csv
-secret
+secret.py
 workspace.code-workspace
 stat/
