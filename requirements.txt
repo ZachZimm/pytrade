@@ -1,2 +1,8 @@
 websocket-client
 apscheduler
+matplotlib
+mplfinance
+flask
+pandas
+numpy
+yfinance(for how long?)

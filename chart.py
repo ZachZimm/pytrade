@@ -74,27 +74,29 @@ def index():
 @app.route("/stat",methods=["POST","GET"])
 def stat():
     _data = get_stat_df_from_csv('is_connected')
-    return plot_svg(_data)
+    return plot_svg(_data, "Server Uptime")
 
 @app.route("/matplot-as-image-<int:num_x_points>.svg")
-def plot_svg(data):
+def plot_svg(data, title):
     s = mpf.make_mpf_style(base_mpf_style='yahoo', rc={'font.size': 16, 'text.color': '#c4d0ff',
                             'axes.labelcolor':'#c4d0ff', 'xtick.color':'#c4d0ff', 'ytick.color':'#c4d0ff'},
                             facecolor="#434345", edgecolor="#000000", figcolor="#292929", y_on_right=False) 
     fig = mpf.figure(figsize=(12, 8), style=s)
-    fig.tight_layout()
+    # fig.tight_layout()
     fig.subplots_adjust(bottom=0.2)
     
     # axis = fig.add_subplot(1, 1, 1)
     axis = fig.gca()
     dates = [dateutil.parser.parse(s) for s in data['Date']]
     axis.plot(dates, data['is_connected'], "")
+    
     axis.set_xticklabels(axis.get_xticks(), rotation = 25)
     axis.set_xticks(dates)
-
+    axis.set_title(title)
     date_form = mdates.DateFormatter("%Y-%m-%d %H:%M:%S")
     axis.xaxis.set_major_formatter(date_form)
     axis.xaxis.set_major_locator(mdates.HourLocator(interval=1)) # I need to figure out how to set this dynamically
+    
 
     output = io.BytesIO()
     FigureCanvasSVG(fig).print_svg(output)
@@ -409,3 +411,8 @@ if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0',port=8080)
     app.debug = True
     app.secret_key = 'WX78654H'
+
+    # TODO
+    # Set /stat chart interval dynamically
+    # Figure out why risk comes out differently than on TradingView
+    # I wonder if I could pass variable = plot_svg(get_stat_df_from_csv(is_connected), "Server Uptime") to html and expect it retrun the right plot if I use {{variable}}

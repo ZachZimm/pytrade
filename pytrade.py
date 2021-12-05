@@ -96,10 +96,8 @@ def kraken():
             WSSTARTED = True
     return render_template("kraken.html", ticker="XBT/USD", xbtusd=BTCUSD, ethbtc=ETHBTC, ethusd=ETHUSD)
 
-def new_candle(first_run=False, _datetime=''):
+def new_candle():
     _datetime = datetime.now(tz=pytz.UTC)
-    if(first_run):
-        _datetime = _datetime 
     print("New Candle!")
     BTCUSD.new_candle(_datetime)
     ETHBTC.new_candle(_datetime)
@@ -140,13 +138,7 @@ WSSTARTED = True
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(new_candle, 'interval', seconds=300) # call new_candle every x seconds
-start_interval_minutes = 5 # Should probably be ^ seconds ^ divided by 60
-while True: # This nonsense is just to get perfect timing on the new candles
-    newtime = datetime.now(tz=pytz.UTC)
-    if((newtime.minute % start_interval_minutes) == 0 and newtime.second == 0 and newtime.microsecond <= 1000):
-        break
 scheduler.start()
-new_candle(True, newtime)
 logging.getLogger('apscheduler.executors.default').propagate = False
 logging.getLogger('apscheduler.scheduler').propagate = False
 
