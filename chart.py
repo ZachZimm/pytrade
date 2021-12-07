@@ -6,7 +6,7 @@ from flask import Flask, flash, Response, redirect, request, render_template, ur
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backends.backend_svg import FigureCanvasSVG
 from matplotlib.figure import Figure
-
+import ta
 import pandas as pd
 import numpy as np
 # from pandas_datareader import data as web
@@ -27,8 +27,8 @@ START=END - dt.timedelta(days=730)
 @app.route("/",methods=["POST","GET"])
 def index():
     # ticker = str(request.args.get("ticker", 'GLP'))
-    ticker='BTC-USD'
-    default_indicators = 'risk riskscatter'
+    ticker='ETHBTC'
+    default_indicators = 'risk riskdif'
     if(request.method == "POST"):
         
         # form_name = request.form['form-name']
@@ -40,7 +40,7 @@ def index():
             new_tick = request.form['ticker']
             new_tick = new_tick.replace('-','.') # yahoo uses '-' in crypto tickers (BTC-USD) which interferes with the retrieving of variables from the url
             new_tick = new_tick.replace('/','')
-            save_to_csv_yahoo(ticker)
+            # save_to_csv_yahoo(ticker)
             new_start = request.form['start']
             new_start = new_start.replace('-','.') # same thing with dates, so I replaced them with '.'
             new_end = request.form['end']
@@ -84,8 +84,6 @@ def plot_svg(data, title):
     fig = mpf.figure(figsize=(12, 8), style=s)
     # fig.tight_layout()
     fig.subplots_adjust(bottom=0.2)
-    
-    # axis = fig.add_subplot(1, 1, 1)
     axis = fig.gca()
     dates = [dateutil.parser.parse(s) for s in data['Date']]
     axis.plot(dates, data['is_connected'], "")
@@ -95,7 +93,7 @@ def plot_svg(data, title):
     axis.set_title(title)
     date_form = mdates.DateFormatter("%Y-%m-%d %H:%M:%S")
     axis.xaxis.set_major_formatter(date_form)
-    axis.xaxis.set_major_locator(mdates.HourLocator(interval=1)) # I need to figure out how to set this dynamically
+    axis.xaxis.set_major_locator(mdates.HourLocator(interval=1)) # I need to figure out how to set this dynamically, Actually I'm not sure this is nessecary at all
     
 
     output = io.BytesIO()
@@ -136,7 +134,6 @@ def plot_finance2(ticker, start, end, indicators):
     # indicators = [ 'risk','riskscatter', 'sma'] #'riskdif']
     # indicators = ['risk','riskscatter', 'sma', 'ext'] 
     output = mplfinance_plot(data, ticker, indicators, 'candlestick', start.year, start.month, start.day, end.year, end.month, end.day)
-    print('\n\n\n\n\n' + str(ticker) + '\n' + str(start) + '\n' + str(end) + '\n' + str(indicators) + '\n\n\n\n\n',file=sys.stderr)
     return Response(output.getvalue(), mimetype="image/png")
 
 def get_ticker_df_from_csv(ticker):
@@ -193,11 +190,15 @@ def define_hull(df):
     return df
 
 def define_risk(df):
-    ma50 = 0 # To calculate 'risk'
-    df['sma50'] = df['Close'].rolling(window=50, min_periods=1).mean()
-    df['sma350'] = df['Close'].rolling(window=350, min_periods=1).mean()
-    df['risk'] = df['sma50']/df['sma350'] # 'risk' 
+    df['sma50_'] = df['Close'].rolling(window=50, min_periods=1).mean()
+    df['sma350_'] = df['Close'].rolling(window=350, min_periods=1).mean()
+    # indicator_50sma = ta.trend.sma_indicator(close=df["Close"], window=50)
+    # indicator_350sma = ta.trend.sma_indicator(close=df["Close"], window=350)
     # df['risk'] = normalize(df['risk'])    # NOT normalized for now
+    df['sma50'] = ta.trend.sma_indicator(close=df["Close"], window=50)
+    df['sma350'] = ta.trend.sma_indicator(close=df["Close"], window=350)
+    df['risk'] = df['sma50']/df['sma350'] # 'risk' 
+
 
     df['hma50'] = HMA(df['Close'],50)
     df['hma350'] = HMA(df['Close'],350)
@@ -213,16 +214,32 @@ def define_risk_dif(df): # Is this a measure of momentum?
     return df
 
 def define_risk_ribbon(_df):
-    _length = 1000
+    _length = 200
     _risk_ma_length = 200
-    _df['riskma'] = _df['risk'].rolling(_risk_ma_length).mean()
-    _df['1rdevlower'] = _df['riskma'] - (1 * _df['risk'].rolling(_length).std())
-    _df['175rdevlower'] = _df['riskma'] - (1.75 * _df['risk'].rolling(_length).std())
-    _df['25rdevlower'] = _df['riskma'] - (2.5 * _df['risk'].rolling(_length).std())
+    # _df['riskma'] = _df['risk'].rolling(_risk_ma_length).mean()
+    risk_std_dev = _df['risk'].rolling(_risk_ma_length).std()
+    rband1 = ta.volatility.BollingerBands(close=_df['risk'], window=_length, window_dev=1)
+    rband175 = ta.volatility.BollingerBands(close=_df['risk'], window=_length, window_dev=1.75)
+    rband25 = ta.volatility.BollingerBands(close=_df['risk'], window=_length, window_dev=2.5)
+    rband29 = ta.volatility.BollingerBands(close=_df['risk'], window=_length, window_dev=2.9)
+    # _df['riskma'] = ta.trend.sma_indicator(close=_df['risk'], window=_risk_ma_length)
+    _df['riskma'] = rband1.bollinger_mavg()
+    # _df['1rdevlower'] = _df['riskma'] - (1 * risk_std_dev)
+    # _df['175rdevlower'] = _df['riskma'] - (1.75 * risk_std_dev)
+    # _df['25rdevlower'] = _df['riskma'] - (2.5 * risk_std_dev)
+    _df['1rdevlower'] = rband1.bollinger_lband()
+    _df['175rdevlower'] = rband175.bollinger_lband()
+    _df['25rdevlower'] = rband25.bollinger_lband()
 
-    _df['1rdevupper'] = _df['riskma'] + (1 * _df['risk'].rolling(_length).std())
-    _df['25rdevupper'] = _df['riskma'] + (2.5 * _df['risk'].rolling(_length).std())
-    _df['29rdevupper'] = _df['riskma'] + (2.9 * _df['risk'].rolling(_length).std())
+    _df['1rdevupper'] = rband1.bollinger_hband()
+    _df['25rdevupper'] = rband25.bollinger_hband()
+    _df['29rdevupper'] = rband29.bollinger_hband()
+
+    _df['riskbuycrossover1'] = np.where((_df['risk'] > _df['25rdevlower']) & (_df['risk'].shift(1) <= _df['25rdevlower'].shift(1)), _df['Close'] * 1, np.nan)
+    _df['risksellcrossunder1'] = np.where((_df['risk'] < _df['29rdevupper']) & (_df['risk'].shift(1) >= _df['29rdevupper'].shift(1)), _df['Close'] * 1, np.nan)
+    # _df['1rdevupper'] = _df['riskma'] + (1 * risk_std_dev)
+    # _df['25rdevupper'] = _df['riskma'] + (2.5 * risk_std_dev)
+    
     # _df['29rdevupper'] = _df['hrisk'] + (2.9 * _df['risk'].rolling(_length).std())        # This is kind of interesting, maybe I should look into it
     # _df['25rdevlower'] = _df['hrisk'] - (2.5 * _df['risk'].rolling(_length).std())
     return _df
@@ -335,27 +352,39 @@ def add_indicators(_ticker, _df,_indicators):
     if('risk' in _indicators):
         _adps.append(mpf.make_addplot(_df['risk'], color='#ff5500', panel=panels)) # while high values represent high instantaneous risk. The
         _adps.append(mpf.make_addplot(_df['hrisk'], color='#adff2f',panel=panels)) # directionality of the risk plot (its derivative) is likewise
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.1, color='#0000ff', panel=panels))
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.2, color='#003cff', panel=panels))
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.3, color='#0078ff', panel=panels))
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.4, color='#009dff', panel=panels))
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.5, color='#00c5ff', panel=panels)) # These are just horizontal lines to both ensure that
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.6, color='#00ee83', panel=panels)) # at least the range of 0.1-0.9 is visible on the second
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.7, color='#00f560', panel=panels)) # panel and to be used as reference for the eye 
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.8, color='#a2ff00', panel=panels))
-        _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.9, color='#ff0000', panel=panels))
+        _adps.append(mpf.make_addplot(_df['sma50'], color='#adff2f',panel=0))
+        _adps.append(mpf.make_addplot(_df['sma350'], color='#ff5500', panel=0))
+
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.1, color='#0000ff', panel=panels))
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.2, color='#003cff', panel=panels))
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.3, color='#0078ff', panel=panels))
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.4, color='#009dff', panel=panels))
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.5, color='#00c5ff', panel=panels)) # These are just horizontal lines to both ensure that
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.6, color='#00ee83', panel=panels)) # at least the range of 0.1-0.9 is visible on the second
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.7, color='#00f560', panel=panels)) # panel and to be used as reference for the eye 
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.8, color='#a2ff00', panel=panels))
+        # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.9, color='#ff0000', panel=panels))
         panels = panels + 1
     if('riskribbon' in _indicators):
-        _adps.append(mpf.make_addplot(_df['risk'], color='#ff5500', panel=panels)) # while high values represent high instantaneous risk. The
-        # _adps.append(mpf.make_addplot(_df['hrisk'], color='#adff2f',panel=panels)) # directionality of the risk plot (its derivative) is likewise
-        _adps.append(mpf.make_addplot(_df['1rdevlower'], color='#9598A1', panel=panels))
-        _adps.append(mpf.make_addplot(_df['175rdevlower'], color='#2191EB', panel=panels))
-        _adps.append(mpf.make_addplot(_df['25rdevlower'], color='#2191EB', panel=panels))        
-        _adps.append(mpf.make_addplot(_df['1rdevupper'], color='#9598A1', panel=panels))
-        _adps.append(mpf.make_addplot(_df['25rdevupper'], color='#2191EB', panel=panels))
-        _adps.append(mpf.make_addplot(_df['29rdevupper'], color='#2191EB', panel=panels))
+        if(_df['risk'].isnull.all() == False):
+            _adps.append(mpf.make_addplot(_df['risk'], color='#f3ff35', panel=panels)) # while high values represent high instantaneous risk. The
+            # _adps.append(mpf.make_addplot(_df['hrisk'], color='#adff2f',panel=panels)) # directionality of the risk plot (its derivative) is likewise
+            _adps.append(mpf.make_addplot(_df['1rdevlower'], color='#bcbcbc', panel=panels))
+            _adps.append(mpf.make_addplot(_df['175rdevlower'], color='#2191EB', panel=panels))
+            _adps.append(mpf.make_addplot(_df['25rdevlower'], color='#2191EB', panel=panels))        
+            _adps.append(mpf.make_addplot(_df['riskma'], color='#acbcbc', panel=panels))
+            _adps.append(mpf.make_addplot(_df['1rdevupper'], color='#bcbcbc', panel=panels))
+            _adps.append(mpf.make_addplot(_df['25rdevupper'], color='#2191EB', panel=panels))
+            _adps.append(mpf.make_addplot(_df['29rdevupper'], color='#2191EB', panel=panels))
 
-        
+            if(_df['riskbuycrossover1'].isnull().all() == False):
+                _df['buyline'] = _df['riskbuycrossover1'].dropna().mean()
+                _adps.append(mpf.make_addplot(_df['buyline'], color='#febf01', panel=0))
+                _adps.append(mpf.make_addplot(_df['riskbuycrossover1'], color='#febf01',type="scatter", panel=0))
+            if(_df['risksellcrossunder1'].isnull().all() == False):
+                _df['sellline'] = _df['risksellcrossunder1'].dropna().mean()
+                _adps.append(mpf.make_addplot(_df['sellline'], color='#adff2f', panel=0))
+                _adps.append(mpf.make_addplot(_df['risksellcrossunder1'], color='#adff2f',type="scatter", panel=0))
 
     if(('riskscatter' in _indicators)): # Buy/Sell scatter plot
         # SMA calculated risk signals
@@ -389,7 +418,8 @@ def mplfinance_plot(df, ticker, indicators, chart_type, syear, smonth, sday, eye
     df_sub = df.loc[start:end]
     s = mpf.make_mpf_style(base_mpf_style='yahoo', rc={'font.size': 16, 'text.color': '#c4d0ff',
                             'axes.labelcolor':'#c4d0ff', 'xtick.color':'#c4d0ff', 'ytick.color':'#c4d0ff'},
-                            facecolor="#434345", edgecolor="#000000", figcolor="#292929", y_on_right=False) 
+                            facecolor="#434345", edgecolor="#000000", figcolor="#292929", y_on_right=False,
+                            gridcolor="#727272") 
     fig = mpf.figure(figsize=(12, 8), style=s)
     title = ticker
     adps = add_indicators(ticker, df_sub, indicators)
@@ -403,6 +433,12 @@ def mplfinance_plot(df, ticker, indicators, chart_type, syear, smonth, sday, eye
     mpf.plot(df_sub, type=chart_type, title=title, tight_layout=True, addplot=adps,
               volume=False, figscale=3, show_nontrading=True, style=s, 
               savefig=buf)#panel_ratios=(3,1),hlines=hlines,mav=(50,350))
+    # for var in (df_sub['sma350'], df_sub['sma50']): # Annotation is not supported in MPLFinance, but apparently there are some tricky workarounds (get the axis) to look into
+    #     fig.annotate('%0.2f' % var.max(), xy=(1, var.max()), xytext=(8, 0), # Seeing as I need the axis to display on a log scale, it's probably worth doing
+    #              xycoords=('axes fraction', 'data'), textcoords='offset points')
+    if('risk' in indicators or 'riskribbon' in indicators):
+        for var in (df_sub['sma350'], df_sub['sma50']):
+            print(var.max())
     return buf
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ def ws_message(ws, message):
             # "order":"buy 0.13196954 ETH/XBT @ limit 0.079530","ordertype":"limit","pair":"ETH/XBT","price":"0.079530",
             # "price2":"0.000000","type":"buy"},"expiretm":null,"fee":"0.000000","limitprice":"0.000000","misc":"",
             # "oflags":"fciq","opentm":"1638668222.895850","refid":null,"starttm":null,"status":"pending",
-            # "stopprice":"0.000000","timeinforce":"GTC","userref":0,"vol":"0.13196954","vol_exec":"0.00000000"}}],"openOrders",{"sequence":2}] - Trade Placed Message
+            # "stopprice":"0.000000","timeinforce":"GTC","userref":0,"vol":"0.13196954","vol_exec":"0.00000000"}}],"openOrders",{"sequence":2}] - Trade Manually Placed Message
         # [[{"OTAJHK-A2MKA-TPL7OY":{"status":"open","userref":0}}],"openOrders",{"sequence":3}] - Trade status becomes open message
 
 def send_order(ws):

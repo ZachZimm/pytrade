@@ -4,10 +4,16 @@
     flex-direction: column;
     justify-content: top;
     background-color: #292929;
+    color:#9ba5c6;
 }
 .textfield {
     background-color: #434345 ;
     color:#c4d0ff;
+}
+.commandentry {
+    background-color: #434345 ;
+    color:#c4d0ff;
+    width: 200%;
 }
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
     color: #c4d0ff;
@@ -26,7 +32,6 @@
     background-color: #5c5c5d ;
     color:#c4d0ff;
     /* color: #EDEDED; */
-    
 }
 .plotframe {
     display: flex;
@@ -45,8 +50,6 @@
     /* justify-content: left; */
     /* justify-content: space-evenly; */
     justify-content:space-between;
-    
-    
 }
 .header.a, a:hover, a:visited, a:active {
     color: #c4d0ff;
@@ -61,6 +64,17 @@
     padding-right: 25em;
     justify-content:start;
 }
+.bodylist {
+    justify-content: center;
+    display: flex;
+    flex-direction: row;
+    color:#9ba5c6;
+}
+.listitem {
+    padding-left: 4em;
+    padding-right: 4em;
+    justify-content:center;
+}
 .secondheader {
     background: #606c88;
     width: 100%;
@@ -68,7 +82,6 @@
     flex-wrap: wrap;
     flex-direction:row;
     justify-content: space-between;
-
 }
 head {
     font-size: x-large;
