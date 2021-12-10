@@ -60,8 +60,8 @@
     text-decoration: none;
 }
 .headeritem {
-    padding-left: 1em;
-    padding-right: 25em;
+    padding-left: 4em;
+    padding-right: 4em;
     justify-content:start;
 }
 .bodylist {

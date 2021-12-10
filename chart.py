@@ -28,7 +28,7 @@ START=END - dt.timedelta(days=730)
 def index():
     # ticker = str(request.args.get("ticker", 'GLP'))
     ticker='ETHBTC'
-    default_indicators = 'risk riskdif'
+    default_indicators = 'riskribbon'
     if(request.method == "POST"):
         
         # form_name = request.form['form-name']
@@ -366,7 +366,7 @@ def add_indicators(_ticker, _df,_indicators):
         # _adps.append(mpf.make_addplot((_df['risk'] * 0) + 0.9, color='#ff0000', panel=panels))
         panels = panels + 1
     if('riskribbon' in _indicators):
-        if(_df['risk'].isnull.all() == False):
+        if(_df['risk'].isnull().all() == False):
             _adps.append(mpf.make_addplot(_df['risk'], color='#f3ff35', panel=panels)) # while high values represent high instantaneous risk. The
             # _adps.append(mpf.make_addplot(_df['hrisk'], color='#adff2f',panel=panels)) # directionality of the risk plot (its derivative) is likewise
             _adps.append(mpf.make_addplot(_df['1rdevlower'], color='#bcbcbc', panel=panels))

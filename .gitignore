@@ -6,3 +6,4 @@ data/*.csv
 secret.py
 workspace.code-workspace
 stat/
+notes.txt
