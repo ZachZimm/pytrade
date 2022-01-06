@@ -1,26 +1,18 @@
 import sys
 import io
-import random
 import logging
-from flask import Flask, flash, Response, redirect, request, render_template, request, url_for
 from apscheduler.schedulers.background import BackgroundScheduler
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.backends.backend_svg import FigureCanvasSVG
-from matplotlib.figure import Figure
 import pandas as pd
 import numpy as np
-# from pandas_datareader import data as web
-import yfinance
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, tzinfo
 import pytz
-import mplfinance as mpf
 import websocket
 from websocket import create_connection
 import _thread
 import time
 import json
+import config as config
 
 class OHLC:
     def __init__(self, ticker):
@@ -53,22 +45,25 @@ class OHLC:
         self.no_trades = False
     
     def new_candle(self, _datetime):
+        self.close_time = _datetime.strftime("%Y-%m-%d %H:%M:%S") # Yikes, compatability issues will likely stem from such a change TODO read and write date like this, get rid of the unnamed index column
         if(self.no_trades):
             self.open = self.prev_close
             self.close = self.prev_close
             self.low = self.prev_close
             self.high = self.prev_close
-        if(self.close != 0.0): # If this was the first candle and there were no trades, it's probably better to skip the candle than plot 0
+            
+        if(self.close != 0.0): # If this is the first candle and there were no trades, it's probably better to skip the candle than to record and plot 0
             new_candle = pd.Series([_datetime, self.open, self.high, self.low, self.close, self.volume, self.trades], index=['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Trades'])
             self.history.loc[_datetime] = new_candle
-        self.open = 0.0
+
+        self.open = 0.0 # Reset values for the next candle
         self.high = 0.0
         self.low = sys.float_info.max
         self.prev_close = self.close
         self.close = 0.0
         self.volume = 0.0
         self.trades = 0
-        self.history.to_csv('data/' + self.ticker + '.csv')
+        self.history.to_csv('data/' + self.ticker + '.csv') # Rewrite entire csv file with data held in memory - this is probably a bad approach
         self.no_trades = True
 
     def update_data(self, data): # Takes a JSON object
@@ -76,20 +71,7 @@ class OHLC:
         self.history.loc[data['date']] = new_candle
         self.history.to_csv('data/' + self.ticker + '.csv')
 
-app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
-BTCUSD = OHLC("BTCUSD")
-ETHBTC = OHLC("ETHBTC")
-ETHUSD = OHLC("ETHUSD")
-WSSTARTED = False
 
-@app.route("/",methods=["POST","GET"])
-def index():
-    if(request.method == "POST"):
-        print('POST Request!', file=sys.stderr)
-        if('command_entry' in request.form):
-            handle_command(request.form['command_entry'])
-    return render_template("kraken.html", ticker="XBT/USD", xbtusd=BTCUSD, ethbtc=ETHBTC, ethusd=ETHUSD)
 
 def new_candle():
     _datetime = datetime.now(tz=pytz.UTC)
@@ -134,7 +116,6 @@ def ws_message(ws, message): # Connect to WebSocket API and subscribe to trade f
         if(obj[3] == 'ETH/USD'):
             global ETHUSD
             ETHUSD.new_data(float(obj[1][0][0]))
-            
     # [321, [['60938.20000', '0.03825548', '1635112722.279822', 's', 'l', '']], 'trade', 'XBT/USD'] The sort of thing you get back from Kraken
 
 def ws_open(ws):
@@ -144,7 +125,7 @@ def ws_open(ws):
 def ws_close(ws, arg2, arg3): # I don't think the arguments are very important here
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
-    print('Disconnected from Kraken at %s' % current_time)
+    print('Disconnected from Kraken market feed at %s' % current_time)
     reconnect_delay = 5
     print("Attempting reconnect..")
     while True: # and internet_connected() ?
@@ -159,36 +140,19 @@ def ws_close(ws, arg2, arg3): # I don't think the arguments are very important h
             print('Failed to reconnect')
             print("Attempting reconnect in %s seconds.." % current_time)
         
-_thread.start_new_thread(ws_thread, ())
-WSSTARTED = True
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(new_candle, 'interval', seconds=300) # call new_candle every x seconds
-scheduler.start()
+BTCUSD = OHLC("BTCUSD")
+ETHBTC = OHLC("ETHBTC")
+ETHUSD = OHLC("ETHUSD")
+WSSTARTED = False
+SCHEDULER = BackgroundScheduler()
+logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('apscheduler.executors.default').propagate = False
 logging.getLogger('apscheduler.scheduler').propagate = False
 
-    
-if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False, host='0.0.0.0', port=3000) # I don't know what the side effects of use_reloader=False are. It's here because apparently
-    app.debug = True                                                    # in debug mode, flask initializes twice and that was causing double the output, which was
-    app.secret_key = 'WX78654H'                                         # a bit annoying. And use_reloader=False was the first fix I found. Apparently it has
-                                                                        # something to do with reloading running code on save, who'd have known?
+def run(scheduler):
+    scheduler.add_job(new_candle, 'interval', seconds=config.interval) # call new_candle every x seconds
+    # scheduler.start()
 
-# TODO
-# Download data from Kraken - or TradingView
-# Get the old app.css from github and use that. Rename this one to index.css or somehing, there might be a change needed in chart.py
-# Refactor OHLC(TV) class into another file
-# Record volume - which one is it in the trade message?
-# Test with charts, maybe I'll follow Derek and use Plotly
-# Get indicators / signals working
-# Connect to Kraken with credentials
-# Monitor positions, keep track of changes and whether they were made manually - maybe even keep a csv of account values
-# Send trades, keep track of all trades sent, and further monitor those positions - maybe use limit orders
-# Pat myself on the back
-# Do up some nicer UI, chart portfolio changes, buys/sells, # of trades, and the like
-
-# Insert data function?
-# Trailing stop?
-
-
+    _thread.start_new_thread(ws_thread, ())
+    global WSSTARTED
+    WSSTARTED = True
