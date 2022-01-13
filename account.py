@@ -74,7 +74,7 @@ class Account:
             time.sleep(reconnect_delay)
             try:
                 secret.WS_Key = kraken.get_ws_key(secret.API_Key, secret.API_Sign)
-                self.ws = websocket.WebSocketApp("wss://ws.kraken.com/", on_open = self.ws_open, on_close=self.ws_close, on_message = self.ws_message)
+                self.ws = websocket.WebSocketApp("wss://ws-auth.kraken.com/", on_open = self.ws_open, on_close=self.ws_close, on_message = self.ws_message)
                 self.ws.run_forever()
                 break
             except:
