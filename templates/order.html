@@ -1,0 +1,11 @@
+<script src="app.py"></script>
+<html class="main">
+        <body>
+            <link rel= "stylesheet" type= "text/css" href="/static/styles/app.css">
+            <div class="header">
+                <form className="headeritem"  method="POST" action="{{url_for('send_order')}}" name="send_order_form" value="send_order">
+                    <input class="button" type="submit" value="Submit Order"/>
+                </form>
+            </div>
+    </body>
+</html>

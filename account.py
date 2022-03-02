@@ -12,6 +12,8 @@ class Account:
         self.is_connected = False
         self.btc_bal = 0.0
         self.eth_bal = 0.0
+        self.avax_bal = 0.0
+        self.usd_bal = 0.0
         self.tickers = tickers
         secret.WS_Key = kraken.get_ws_key(secret.API_Key, secret.API_Sign)
         self.get_balances()
@@ -84,6 +86,8 @@ class Account:
                 print("Attempting reconnect in %s seconds.." % current_time)
 
     def send_order(self, _pair, _type, _ordertype, _price, _volume):
+        
+        print('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
         self.ws.send('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
 
         # {"descr":"sell 0.00500000 XBTUSD @ limit 70000.0","event":"addOrderStatus","status":"ok","txid":"OBKJWD-7BDTZ-Z6ADET"} - Order sent
@@ -104,5 +108,8 @@ class Account:
             # "userref":0,"cancel_reason":"User requested"}}],"openOrders",{"sequence":2}] - Order Canceled
         
     def get_balances(self):
+        # for each ticker in self.tickers:
         self.btc_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['XXBT'])
         self.eth_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['XETH'])
+        self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['AVAX'])
+        self.usd_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['ZUSD'])
