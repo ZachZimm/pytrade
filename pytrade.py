@@ -13,6 +13,7 @@ import _thread
 import time
 import json
 import config as config
+import deviation_scalp_strat as strategy
 
 class OHLC:
     def __init__(self, ticker):
@@ -42,7 +43,7 @@ class OHLC:
             self.open = data
         self.close = data
         self.trades = self.trades + 1
-        self.no_trades = False
+        self.no_trades = False # Why do I need a bool? Can't I just check if (self.trades == 0) ?
     
     def new_candle(self, _datetime):
         self.close_time = _datetime.strftime("%Y-%m-%d %H:%M:%S") # Yikes, compatability issues will likely stem from such a change TODO read and write date like this, get rid of the unnamed index column
@@ -60,7 +61,7 @@ class OHLC:
         self.high = 0.0
         self.low = sys.float_info.max
         self.prev_close = self.close
-        self.close = 0.0
+        self.close = self.close
         self.volume = 0.0
         self.trades = 0
         self.history.to_csv('data/' + self.ticker + '.csv') # Rewrite entire csv file with data held in memory - this is probably a bad approach
@@ -80,6 +81,7 @@ def new_candle():
     ETHBTC.new_candle(_datetime)
     ETHUSD.new_candle(_datetime)
     AVAXUSD.new_candle(_datetime)
+    # SOLUSD.new_candle # maybe sol/btc?
 
 def handle_command(_command):
     command = json.loads(_command)
@@ -109,7 +111,7 @@ def ws_thread(*args):
 def ws_message(ws, message): # Connect to WebSocket API and subscribe to trade feed for XBT/USD
     obj = json.loads(message)
     if ((len(obj) == 4) and ('connectionID' not in obj)):
-        print(obj[3] + " : " + obj[1][0][0])
+        # print(obj[3] + " : " + obj[1][0][0]) # On each trade, prints stuff like ETH/USD : 2700.00
         if(obj[3] == 'XBT/USD'):
             global BTCUSD
             BTCUSD.new_data(float(obj[1][0][0]))
@@ -144,7 +146,7 @@ def ws_close(ws, arg2, arg3): # I don't think the arguments are very important h
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
             print('Failed to reconnect')
-            print("Attempting reconnect in %s seconds.." % current_time)
+            print("Attempting reconnect in %s seconds.." % reconnect_delay)
         
 BTCUSD = OHLC("BTCUSD")
 ETHBTC = OHLC("ETHBTC")
@@ -152,9 +154,10 @@ ETHUSD = OHLC("ETHUSD")
 AVAXUSD = OHLC("AVAXUSD")
 WSSTARTED = False
 SCHEDULER = BackgroundScheduler()
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('apscheduler.executors.default').propagate = False
-logging.getLogger('apscheduler.scheduler').propagate = False
+# logging.basicConfig(level=logging.DEBUG)
+# logging.getLogger('apscheduler.executors.default').propagate = False
+# logging.getLogger('apscheduler.scheduler').propagate = False
+# logging.getLogger('matplotlib').propagate = False
 
 def run(scheduler):
     scheduler.add_job(new_candle, 'interval', seconds=config.interval) # call new_candle every x seconds

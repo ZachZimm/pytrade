@@ -14,6 +14,9 @@ class Account:
         self.eth_bal = 0.0
         self.avax_bal = 0.0
         self.usd_bal = 0.0
+        self.last_entry = 0.0
+        self.is_long = False
+        self.is_short = False
         self.tickers = tickers
         secret.WS_Key = kraken.get_ws_key(secret.API_Key, secret.API_Sign)
         self.get_balances()
@@ -34,7 +37,10 @@ class Account:
         # print(message)
         # if(obj[0] != 'heartbeat'):
         if('heartbeat' not in message):
+            print(obj[0][0])
+            print(obj[0][0][0]+", " + obj[0][0][1] + ", " + obj[1])
             print(message + '\n')
+       # if(obj)
         # print("Account Message:\n%s" % message)
         # if ((len(obj) == 4) and ('connectionID' not in obj)): # I don't think this does anything useful here
         #     print(obj[2] + " : " + obj[1][0][0]) # And neither does this
@@ -100,7 +106,11 @@ class Account:
 
     def cancel_order(self, txid):
         _txid = txid
-        self.send('{"event": "cancelOrder","token": "%s","txid": ["%s"]}' % (secret.WS_Key, _txid))
+        self.ws.send('{"event": "cancelOrder","token": "%s","txid": ["%s"]}' % (secret.WS_Key, _txid))
+
+    def cancel_all(self):
+        # self.ws.send('{"event": "cancelAll","token": "%s"]}' % (secret.WS_Key))
+        kraken.cancel_all(secret.API_Key, secret.API_Sign)
 
         # {"event":"cancelOrderStatus","status":"ok"} - Cancel Order Sent
         # [[{"OBKJWD-7BDTZ-Z6ADET":{"lastupdated":"1638670886.658310","status":"canceled",

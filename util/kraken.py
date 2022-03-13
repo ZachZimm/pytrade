@@ -39,6 +39,11 @@ def get_bal(api_key, api_sign):
 
     return resp.json()
 
+def cancel_all(api_key, api_sign):
+    resp = kraken_request('/0/private/CancelAll', {
+        "nonce": str(int(1000*time.time()))
+    }, api_key, api_sign)
+
 def get_ws_key(api_key, api_sign):
     api_nonce = bytes(str(int(time.time()*1000)), "utf-8")
     api_request = urllib.request.Request("https://api.kraken.com/0/private/GetWebSocketsToken", b"nonce=%s" % api_nonce)

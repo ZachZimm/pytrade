@@ -18,11 +18,11 @@ import matplotlib.dates as mdates
 import datetime as dt
 import dateutil
 import mplfinance as mpf
-import riskribbon_strategy as strategy # I should definte some simple default strategy
+import deviation_scalp_strat as strategy # I should definte some simple default strategy
 
 @app.route("/",methods=["POST","GET"])
 def index():
-    ticker='ETHBTC'
+    ticker='AVAXUSD'
     default_indicators = 'riskribbon'
     if(request.method == "POST"):
         
@@ -55,11 +55,11 @@ def index():
             new_indicators = new_indicators.replace(',','')
             if(new_indicators == ''):
                 new_indicators = 'none'
-            return render_template("app.html", ticker=new_tick, sday=new_start_dt.day, smonth=new_start_dt.month,
+            return render_template("app.html", ticker=new_tick, start=START, end=END, sday=new_start_dt.day, smonth=new_start_dt.month,
                                     syear=new_start_dt.year, eday=new_end_dt.day, emonth=new_end_dt.month, 
                                     eyear=new_end_dt.year, indicators=new_indicators)
 
-    return render_template("app.html", ticker=ticker, sday=START.day, smonth=START.month,
+    return render_template("app.html", ticker=ticker, start=START, end=END, sday=START.day, smonth=START.month,
                                     syear=START.year, eday=END.day, emonth=END.month, 
                                     eyear=END.year, indicators=default_indicators)
 
@@ -108,7 +108,7 @@ def plot_finance2(ticker, start, end, indicators):
 
 def get_ticker_df_from_csv(ticker):
     try:
-        df = pd.read_csv('./data/' + ticker + '.csv')
+        df = pd.read_csv('./data/' + ticker + '-active_strategy.csv')
     except FileNotFoundError:
         print('File does not exist')
     else:
@@ -151,7 +151,7 @@ def mplfinance_plot(df, ticker, indicators, chart_type, syear, smonth, sday, eye
     start = f"{syear}-{smonth}-{sday}"
     end = f"{eyear}-{emonth}-{eday}"
     df.index = pd.DatetimeIndex(df['Date'])
-    df = strategy.define_indicators(ticker, df, indicators)
+    # df = strategy.define_indicators(ticker, df, indicators)
     df_sub = df.loc[start:end]
     s = mpf.make_mpf_style(base_mpf_style='yahoo', rc={'font.size': 16, 'text.color': '#c4d0ff',
                             'axes.labelcolor':'#c4d0ff', 'xtick.color':'#c4d0ff', 'ytick.color':'#c4d0ff'},
@@ -167,7 +167,7 @@ def mplfinance_plot(df, ticker, indicators, chart_type, syear, smonth, sday, eye
     #     chart_type = 'renko' # doesn't work when addplot is set in mpf.plot()
     #     adps=False # maybe?
     # hlines = dict(hlines=[0.2,0.8], colors=['g','r'], linestyle='-.') # Only works on primary y axis
-    mpf.plot(df_sub, type=chart_type, title=title, tight_layout=True, addplot=adps,
+    out = mpf.plot(df_sub, type=chart_type, title=title, tight_layout=True, addplot=adps,
               volume=False, figscale=3, show_nontrading=True, style=s, 
               savefig=buf)#panel_ratios=(3,1),hlines=hlines,mav=(50,350))
     # for var in (df_sub['sma350'], df_sub['sma50']): # Annotation is not supported in MPLFinance, but apparently there are some tricky workarounds (get the axis) to look into

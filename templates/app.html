@@ -16,9 +16,9 @@
         <div class="secondheader">
             <form method="POST" action="{{url_for('index')}}" name="form-name" value="new_chart">
                 <input class="textfield" type="text" name="ticker" value={{ticker}} placeholder="ticker"/>
-                <input class="textfield" type="date" name="start" placeholder="start"/>
-                <input class="textfield" type="date" name="end" placeholder="end"/>
-                <input class="textfield" type="text" name="indicators" placeholder="indicators"/>
+                <input class="textfield" type="date" name="start" value="{{start}}" placeholder="start"/>
+                <input class="textfield" type="date" name="end" value="{{end}}" placeholder="end"/>
+                <input class="textfield" type="text" name="indicators" value="{{new_indicators}}" placeholder="indicators"/>
                 <input class="button" type="submit" value="create chart"/>
             </form>
             <form method="POST" action="{{url_for('index')}}" name="form-name" value="new_download">
