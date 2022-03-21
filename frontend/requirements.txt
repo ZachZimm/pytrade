@@ -1,0 +1,1 @@
+npm install --save @visx/mock-data @visx/group @visx/shape @visx/scale

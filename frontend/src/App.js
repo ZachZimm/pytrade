@@ -1,10 +1,22 @@
 import logo from './logo.svg';
 import './App.css';
-import React, {useEffect, useState} from 'react';
+import Chart from "./Chart"
+import PerformanceChart from './PerformanceChart';
+import BarChart from "./BarChart"
+import styled from "styled-components";
+import React, {useRef, useEffect, useState} from 'react';
 import {ethers} from 'ethers'
 import $, { data } from 'jquery'
 
 import Button from '@mui/material/Button';
+import { InlineIcon } from '@iconify/react';
+
+import { letterFrequency } from '@visx/mock-data';
+import { Group } from '@visx/group';
+import { Bar } from '@visx/shape';
+import { scaleLinear, scaleBand } from '@visx/scale';
+// import * as d3 from 'd3'
+import { select, csv, line, curveCardinal, timeFormat, timeParse } from "d3";
 // import TextField from "@material-ui/core/TextField";
 // import { makeStyles } from "@material-ui/core/styles";
 // import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@material-ui/core';
@@ -14,48 +26,74 @@ import Button from '@mui/material/Button';
 // 	  "& > *": {
 // 		margin: theme.spacing(1),
 // 	  },
-// 	},
+// 	},>
 //    }));
 
-function App() {
-	const [message, setMessage] = useState({})
-	const [openButtonText, setOpenButtonText] = useState('Open Sesame!')
+const Container = styled.div`
+	background-color: #506B80;
+	width: 900px;
+	min-width: 300px;
+	height: 400px;
+	border-radius: 40px;
+	overflow: hidden;
+	position: relative;
+`;
+// background-color: #201d47; - purplish
+
+const  App = () => {
+	const [message, setMessage] = useState([{}])
+	const [balance, setBalance] = useState()
+	const [profit, setProfit] = useState(0)
+	const [count, setCount] = useState(0)
+	const [intervalStarted, setIntervalStarted] = useState(false)
+	const [openButtonText, setOpenButtonText] = useState('Check Faster!')
 	const [defaultAccount, setDefaultAccount] = useState(null);
 	const [connButtonText, setConnButtonText] = useState('Connect Wallet');
 	const [errorMessage, setErrorMessage] = useState(null);
 	const [provider, setProvider] = useState(null);
 	const [signer, setSigner] = useState(null);
+	const [admin, setAdmin] = useState(false);
+
 
 	$.ajaxSetup({
 		crossDomain: true
 	})
 	const query = async () => {
-		var request = '/api/1' // This should be passed in as an arg
+		var request = '/data' // This should be passed in as an arg
 		var sub = window.origin.split(':')
 		var uri = sub[0] +':'+ sub[1]
-		uri = uri + ':5000' + request
-		console.log(uri)
+		uri = uri + ':8080' + request
+		// console.log(origin)
 		
 		$.getJSON(uri, function(data){
 			console.log("Response: ", data)
+			setBalance(((data.avax_bal * data.Close) + data.usd_bal).toFixed(2))
+			setProfit((((((data.avax_bal * data.Close) + data.usd_bal)/745)-1)*100).toFixed(2))
 			setMessage(data)
 		})
+		// setPrice(price + 1)
+		
+		setTimeout(query,5000)
 	}
+
+	useEffect(() => {
+		query()
+	}, []) // empty array - runs once after first render
 	
 	useEffect(()=>{
-		query()
-	}, [])
 
-	const pulseGarage = async (e) => {
-		e.preventDefault()
-		var sub = window.origin.split(':')
-		var uri = sub[0] +':'+ sub[1] + ":5000" + "/pulse/"
-		$.getJSON(uri,(data)=>{
-			console.log("Pulse: ", data)
-			setMessage(data)
-		})
-		console.log(uri)
-	}
+	}, [query, defaultAccount]);
+
+	
+	// const pulseGarage = async (e) => {
+	// 	e.preventDefault()
+	// 	var sub = window.origin.split(':')
+	// 	var uri = sub[0] +':'+ sub[1] + ":5000" + "/pulse/"
+	// 	$.getJSON(uri,(data)=>{
+	// 		console.log("Pulse: ", data)
+	// 		setMessage(data)
+	// 	})
+	// }
 
 	const postFlask = async (e) => {
 		e.preventDefault()
@@ -107,6 +145,11 @@ function App() {
 	const accountChangedHandler = async (newAccount) => {
 		setDefaultAccount(newAccount);
 		console.log("Account Connected: ", newAccount)
+		// Check if the connecting account is one of the admin accounts
+		if(newAccount.toLowerCase() === "0x27F0B78cA6C097d1b6875d6c174Bb8724BEA1eb8".toLowerCase() || newAccount.toLowerCase() === "0xaBc1B66F2787239D6E293C01eC3Aa8186b5FE912".toLowerCase() || newAccount.toLowerCase() === "0x1062600449D285509114130283ba60cc6455b7fc".toLowerCase())
+		{
+			setAdmin(true)
+		}
 		updateEthers();
 	}
 
@@ -123,12 +166,29 @@ function App() {
 		window.location.reload();
 	}
 
-	// listen for account changes
-	window.ethereum.on('accountsChanged', accountChangedHandler);
+	// const interval = setInterval(async () => {
+	// 	// method to be executed;
+	// 	setCount(count + 1)
+	// 	console.log(count)
+	// 	// setIntervalStarted(true)
+	//   }, 5000);
 
-	window.ethereum.on('chainChanged', chainChangedHandler);
+	// listen for account changes
+	// window.ethereum.on('accountsChanged', accountChangedHandler);
+
+	// window.ethereum.on('chainChanged', chainChangedHandler);
+	// {chart_data.map((Date, dev_sma) => {
+	const renderDollarBalance = () => {
+		if(admin){
+			return <h3>${balance}</h3>
+		}
+		else
+		{
+			return
+		}
+	}
 	
-	if(defaultAccount === null)
+	if(false)//(defaultAccount === null)
 	{
 		return (
 			<div className='App'>
@@ -138,25 +198,35 @@ function App() {
 			</div>
 		)
 	}
-	else
-	{
+	// else
+	// if(chartData !== [])
+	// {
 		return (
 			<div className="App">
-				<header className="App-header">
-					<img src={logo} className="App-logo" alt="logo" />
-					<p>
-						Blockhain-Authenticated Garage Door
-					</p>
-					<h3>{message.name}</h3> 
-					{/* <form onSubmit={postFlask}> */}
-					<Button variant="contained" size="large" className='entryButton' type='submit' color="primary" onClick={postFlask}>
-						{openButtonText}
+
+					<h2>AVAX: ${message.Close}</h2>
+					<Container>
+						<Chart />
+					</Container>
+					{/* <Container>
+						<BarChart />
+					</Container> */}
+					{/* <img src={logo} className="App-logo" alt="logo" /> */}
+					<div>
+						<h2>Bot Profit: {profit}%</h2>
+						<h3><InlineIcon icon="logos:ethereum-color"/> {(message.avax_bal * message.Close/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% / {(message.usd_bal/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% <InlineIcon icon="noto:dollar-banknote"/></h3>
+						{renderDollarBalance()}
+					</div>
+					<Container>
+						<PerformanceChart />
+					</Container>
+					<br/>
+					<Button variant="contained" size="large" className='entryButton' type='submit' color="primary" onClick={connectWalletHandler}>
+						{connButtonText}
 					</Button>
-					{/* </form> */}
-				</header>
 			</div>
   );
-	}
+	// }
 }
 
 export default App;

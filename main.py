@@ -5,6 +5,7 @@ import io
 import random
 import logging
 from flask import Flask, flash, Response, redirect, request, render_template, url_for, send_from_directory
+from flask_cors import CORS
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backends.backend_svg import FigureCanvasSVG
 from matplotlib.figure import Figure
@@ -44,6 +45,7 @@ def on_new_candle(event):
          + str(ACCOUNT.avax_bal) + ' AVAX\n' + str(ACCOUNT.usd_bal) + ' USD\n')
 
 app = Flask(__name__)
+CORS(app)
 # logging.basicConfig(level=logging.DEBUG)
 END = dt.datetime.now() + dt.timedelta(days=1)
 START = END - dt.timedelta(minutes=1000)
@@ -54,21 +56,21 @@ RESTART_ACCOUNT = 'RESTART_ACCOUNT'
 SCHEDULER = BackgroundScheduler()
 ACCOUNT = Account( ["ETH/USD","ETH/XBT","BTC/USD","AVAX/USD"] ) # pass in an array from config.py
 
-@app.route("/data", methods=["POST","GET"])
-def order_route():
+@app.route("/data", methods=["GET"])
+def serve_data():
     data = {
-        "Close": pytrade.AVAXUSD.close, 
-        "ticker": config.trade_ticker, 
-        "avax_bal": ACCOUNT.avax_bal,
-        "usd_bal": ACCOUNT.usd_bal, 
-        "is_long": ACCOUNT.is_long,
-        "is_short": ACCOUNT.is_short,
-        "last_entry": ACCOUNT.last_entry
-        }
+            "Close": pytrade.AVAXUSD.close, 
+            "ticker": config.trade_ticker, 
+            "avax_bal": ACCOUNT.avax_bal,
+            "usd_bal": ACCOUNT.usd_bal, 
+            "is_long": ACCOUNT.is_long,
+            "is_short": ACCOUNT.is_short,
+            "last_entry": ACCOUNT.last_entry
+            }
     
     return data
 
-@app.route("/strategydata", methods=["POST","GET"])
+@app.route("/strategy_data", methods=["GET"])
 def serve_strategy_data():
     
     path = 'data/' + config.trade_ticker + '-active_strategy.csv'
@@ -77,9 +79,19 @@ def serve_strategy_data():
     with open(path, 'r') as f:
         returntext = f.read()
     f.close()
-    return render_template('content.html', text=returntext)
-    # import 'data/' + path as data ?
-    # return Response(path, mimetype='text/csv')
+    if (request.method == "GET"): return returntext
+    else: return render_template('content.html', text=returntext)
+
+@app.route("/strategy_log", methods=["GET"])
+def serve_strategy_log():
+    
+    path = 'data/' + 'strategy_log.csv'
+    returntext = ""
+    with open(path, 'r') as f:
+        returntext = f.read()
+    f.close()
+    if (request.method == "GET"): return returntext
+    else: return render_template('content.html', text=returntext)
 
 def check_for_order_log():
     try:
