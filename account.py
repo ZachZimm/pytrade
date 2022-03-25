@@ -129,6 +129,6 @@ class Account:
         self.btc_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['XXBT'])
         self.eth_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['XETH'])
         self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['AVAX'])
-        self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['SOL'])
-        self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['LUNA'])
+        self.sol_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['SOL'])
+        self.luna_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['LUNA'])
         self.usd_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['ZUSD'])
