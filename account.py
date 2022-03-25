@@ -5,6 +5,7 @@ import time
 import json
 import secret # Websocket API token
 from datetime import datetime
+import config as config
 import util.kraken as kraken
 
 class Account:
@@ -14,6 +15,8 @@ class Account:
         self.eth_bal = 0.0
         self.avax_bal = 0.0
         self.usd_bal = 0.0
+        self.sol_bal = 0.0
+        self.luna_bal = 0.0
         self.last_entry = 0.0
         self.is_long = False
         self.is_short = False
@@ -94,7 +97,11 @@ class Account:
     def send_order(self, _pair, _type, _ordertype, _price, _volume):
         
         print('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
-        self.ws.send('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
+        if(config.debug == True):
+            print("debug = True")
+        else:
+            self.ws.send('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
+        
 
         # {"descr":"sell 0.00500000 XBTUSD @ limit 70000.0","event":"addOrderStatus","status":"ok","txid":"OBKJWD-7BDTZ-Z6ADET"} - Order sent
         # [[{"OBKJWD-7BDTZ-Z6ADET":{"avg_price":"0.00000","cost":"0.00000","descr":{"close":null,"leverage":null,"order":"
@@ -122,4 +129,6 @@ class Account:
         self.btc_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['XXBT'])
         self.eth_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['XETH'])
         self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['AVAX'])
+        self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['SOL'])
+        self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['LUNA'])
         self.usd_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['ZUSD'])

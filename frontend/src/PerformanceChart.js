@@ -17,12 +17,12 @@ const tickLabelProps = () => ({
     label: "%"
   });
 
-const getYValue = (d) => (d['price']/71);
+const getYValue = (d) => (d['price']/86.35);
 const getYValue2 = (d) => (d['balance']/750);
 
 const getXValue = (d) => { return new Date(d['Date']) }
  
-    const bisectDate = bisector(getXValue).left;
+const bisectDate = bisector(getXValue).left;
 
 
 const tooltipStyles = {

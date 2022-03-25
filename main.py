@@ -41,8 +41,9 @@ def on_new_candle(event):
         # df = pytrade.define_indicators(ticker,df)
         ACCOUNT.get_balances() # Perhaps this should be below strategy.generate_signals() It really depends on whether it takes much time
         config.strategy.generate_signals(df, ACCOUNT)
-        print('Account Balacnces:\n' + str(ACCOUNT.btc_bal) + ' BTC\n' + str(ACCOUNT.eth_bal) + ' ETH\n'
-         + str(ACCOUNT.avax_bal) + ' AVAX\n' + str(ACCOUNT.usd_bal) + ' USD\n')
+        print('\nAccount Balacnces:\n' + str(ACCOUNT.btc_bal) + ' BTC\n' + str(ACCOUNT.eth_bal) + ' ETH\n'
+         + str(ACCOUNT.avax_bal) + ' AVAX\n' + str(ACCOUNT.sol_bal) + ' SOL\n' + 
+         str(ACCOUNT.luna_bal) + ' LUNA\n' + str(ACCOUNT.usd_bal) + ' USD\n')
 
 app = Flask(__name__)
 CORS(app)
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     check_for_order_log()
     
     data_collect_start = round_dt_up(now, timedelta(minutes=(config.interval/60)))
-    data_record_and_trade_start = data_collect_start + timedelta(minutes=5, seconds=1)
+    data_record_and_trade_start = data_collect_start + timedelta(minutes=config.interval/60, seconds=1)
 
     SCHEDULER.add_job(pytrade.run, args=[SCHEDULER], run_date=data_collect_start) # I should probably use some arguments here such as ticker(s) and interval
     SCHEDULER.add_listener(on_new_candle, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
@@ -123,7 +124,7 @@ if __name__ == "__main__":
     import chart as chart
     chart.strategy = config.strategy # The strategy can be switched out like this, and probably just the same for the backtester
 
-    app.run(debug=True, use_reloader=False, host='0.0.0.0',port=8080)
+    app.run(debug=True, use_reloader=False, host='0.0.0.0',port=config.port)
     app.secret_key = 'WX78654H'
 
     # TODO

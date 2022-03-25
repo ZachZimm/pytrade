@@ -164,10 +164,6 @@ def generate_signals(_df, account):
         account.is_short = True
         # _df['is_short'] = entry_price
 
-    print("is_long: " + str(account.is_long))
-    print("is_short: " + str(account.is_short))
-
-    
     # if(last_row['is_long'][0] != np.nan):
 
     # elif(last_row['is_short'][0] != np.nan)

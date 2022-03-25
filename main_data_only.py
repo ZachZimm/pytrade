@@ -22,7 +22,8 @@ RESTART_ACCOUNT = 'RESTART_ACCOUNT'
 SCHEDULER = BackgroundScheduler()
 
 if __name__ == '__main__':
-    # chart.run() # ?
+    import chart as chart
+    chart.strategy = config.strategy # The strategy can be switched out like this, and probably just the same for the backtester
     # pytrade.run() 
     # account.run()
     # market_listener = pytrade

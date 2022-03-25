@@ -81,7 +81,9 @@ def new_candle():
     ETHBTC.new_candle(_datetime)
     ETHUSD.new_candle(_datetime)
     AVAXUSD.new_candle(_datetime)
-    # SOLUSD.new_candle # maybe sol/btc?
+    SOLUSD.new_candle(_datetime)
+    SOLBTC.new_candle(_datetime)
+    LUNAUSD.new_candle(_datetime)
 
 def handle_command(_command):
     command = json.loads(_command)
@@ -124,10 +126,19 @@ def ws_message(ws, message): # Connect to WebSocket API and subscribe to trade f
         if(obj[3] == 'AVAX/USD'):
             global AVAXUSD
             AVAXUSD.new_data(float(obj[1][0][0]))
+        if(obj[3] == 'SOL/USD'):
+            global SOLUSD
+            SOLUSD.new_data(float(obj[1][0][0]))
+        if(obj[3] == 'SOL/BTC'):
+            global SOLBTC
+            SOLBTC.new_data(float(obj[1][0][0]))
+        if(obj[3] == 'LUNA/USD'):
+            global LUNAUSD
+            LUNAUSD.new_data(float(obj[1][0][0]))
     # [321, [['60938.20000', '0.03825548', '1635112722.279822', 's', 'l', '']], 'trade', 'XBT/USD'] The sort of thing you get back from Kraken
 
 def ws_open(ws):
-    ws.send('{"event":"subscribe", "subscription":{"name":"trade"}, "pair":["XBT/USD", "ETH/XBT", "ETH/USD", "AVAX/USD"]}')
+    ws.send('{"event":"subscribe", "subscription":{"name":"trade"}, "pair":["XBT/USD", "ETH/XBT", "ETH/USD", "AVAX/USD", "SOL/USD", "SOL/BTC", "LUNA/USD"]}')
     print("WebSocket connected and subscribed!", file=sys.stderr)
 
 def ws_close(ws, arg2, arg3): # I don't think the arguments are very important here
@@ -152,6 +163,9 @@ BTCUSD = OHLC("BTCUSD")
 ETHBTC = OHLC("ETHBTC")
 ETHUSD = OHLC("ETHUSD")
 AVAXUSD = OHLC("AVAXUSD")
+SOLUSD = OHLC("SOLUSD")
+SOLBTC = OHLC("SOLBTC")
+LUNAUSD = OHLC("LUNAUSD")
 WSSTARTED = False
 SCHEDULER = BackgroundScheduler()
 # logging.basicConfig(level=logging.DEBUG)
