@@ -64,7 +64,7 @@ const  App = () => {
 		// var uri = sub[0] +':'+ sub[1]
 
 		// Maybe do if(origin == localhost) {}
-		uri = '71.94.94.154:8080' + request
+		var uri = 'http://71.94.94.154:8080' + request
 		// console.log(origin)
 		
 		$.getJSON(uri, function(data){
