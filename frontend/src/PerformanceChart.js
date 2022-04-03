@@ -17,8 +17,8 @@ const tickLabelProps = () => ({
     label: "%"
   });
 
-const getYValue = (d) => (d['price']/86.35);
-const getYValue2 = (d) => (d['balance']/750);
+const getYValue = (d) => (d['price']/83.8);
+const getYValue2 = (d) => (d['balance']/500);
 
 const getXValue = (d) => { return new Date(d['Date']) }
  
@@ -59,7 +59,7 @@ const PerformanceChart = () => {
             setData(d) 
             // setData(d.slice(-100))
             setLoading(false)
-            setTimeout(get_strategy_data,15000) // Check for new data in 2.5 minutes and cause chart to re-render
+            setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
         })
     }
 

@@ -117,6 +117,8 @@ if __name__ == "__main__":
     SCHEDULER.add_listener(on_new_candle, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
     SCHEDULER.start()
 
+    ACCOUNT.get_balances()
+
     print("Now:\t\t" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second))
     print("Start:\t\t" + str(data_collect_start.hour) + ":" + str(data_collect_start.minute) + ":" + str(data_collect_start.second))
     print("First Candle:\t" + str(data_collect_start.hour) + ":" + str(data_collect_start.minute + 5) + ":" + str(data_collect_start.second))
@@ -128,7 +130,6 @@ if __name__ == "__main__":
     app.secret_key = 'WX78654H'
 
     # TODO
-    # Keep a CSV of executed trades
+    # Keep a CSV of executed trades, both sides of the trade
     # Use the config file, I shouldn't be hard-coding tickers or parameters anywhere but config.py
     # Build a backtester
-    # A better front-end would be nice. Profit summary, more user-friendly chart, no useless buttons or extra text

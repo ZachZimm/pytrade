@@ -3,6 +3,7 @@ import React, {useEffect, useState,} from 'react';
 import useMeasure from 'react-use-measure'
 import {defaultStyles, useTooltip, TooltipWithBounds} from "@visx/tooltip"
 import {scaleLinear, scaleTime} from "@visx/scale"
+import {Threshold} from "@visx/threshold"
 import {extent, bisector} from "d3-array"
 import { Group } from "@visx/group";
 import { Line, LinePath, Bar } from "@visx/shape";
@@ -14,7 +15,7 @@ const getYValue2 = (d) => d['dev_dir'];
 
 const getXValue = (d) => { return new Date(d['Date']) }
  
-    const bisectDate = bisector(getXValue).left;
+const bisectDate = bisector(getXValue).left;
 
 
 const tooltipStyles = {
@@ -61,7 +62,8 @@ const Chart = () => {
             // setData(d) 
             setData(d.slice(-100))
             setLoading(false)
-            setTimeout(get_strategy_data,15000) // Check for new data in 2.5 minutes and cause chart to re-render
+            console.log(2)
+            setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
         })
     }
 
@@ -70,7 +72,8 @@ const Chart = () => {
 		{
 			get_strategy_data()
 		}
-		console.log(data)
+		// console.log(data)
+        console.log(1)
 		// query()
 	}, [data]);
 
@@ -92,13 +95,31 @@ const Chart = () => {
     return (<>
             <svg ref={ref} width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
                 <Group>
+                    <Threshold
+                        id={`${Math.random()}`}
+                        data={data}
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y0={(d) => yScale(getYValue2(d)) ?? 0}
+                        y1={(d) => yScale(getYValue(d)) ?? 0}
+                        clipAboveTo={0}
+                        clipBelowTo={height}
+                        curve={curveBasis}
+                        belowAreaProps={{
+                        fill: '#8080A6',
+                        fillOpacity: 0.5,
+                        }}
+                        aboveAreaProps={{
+                        fill: '#357341',
+                        fillOpacity: 0.5,
+                        }}
+                    />
                     <LinePath
                         data={data}
                         key={(d) => `bar-${getXValue(d)}`}
                         x={(d) => xScale(getXValue(d)) ?? 0}
                         y={(d) => yScale(getYValue(d)) ?? 0}
-                        stroke="#F5D482"
-                        strokeWidth={2}
+                        stroke="#EDD2AE"
+                        strokeWidth={1.5}
                         curve={curveNatural}
 
                     />
@@ -108,8 +129,8 @@ const Chart = () => {
                         x={(d) => xScale(getXValue(d)) ?? 0}
                         y={(d) => yScale(getYValue2(d)) ?? 0}
                         stroke="#6CB8F4"
-                        strokeWidth={2}
-                        curve={curveNatural}
+                        strokeWidth={1.5}
+                        curve={curveBasis}
 
                     />
                     <LinePath
