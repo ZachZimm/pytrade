@@ -26,19 +26,15 @@ const getYValue2 = (d) => d['dev_dir'];
 const getXValue = (d) => d['Date'];
 
 const Wrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  
 `;
+// wrapper:
+// width: 100%;
+//   height: 100%;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
 
-const Container = styled.div`
-  position: relative;
-  width: 600px;
-  height: 400px;
-  min-width: 300px;
-`;
 
 const tooltipStyles = {
   ...defaultStyles,
@@ -145,8 +141,7 @@ const Chart = () => {
   {
     return (
       <Wrapper>
-        {/* <Container > */}
-          <svg width="100%" height="100%" viewBox={`0 0 100 100`}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
             <Group>
               {data.map((d) => {
                 const xValue = getXValue(d);
@@ -235,10 +230,9 @@ const Chart = () => {
               <b>{`${timeFormat("%b %d, %Y")(
                 new Date(getXValue(tooltipData))
               )}`}</b>
-              : ${getYValue(tooltipData)}
+              : ${getYValue(tooltipData).toFixed(3)}
             </TooltipWithBounds>
           ) : null}
-        {/* </Container> */}
       </Wrapper>
     );
   }

@@ -3,6 +3,7 @@ import './App.css';
 import Chart from "./Chart"
 import PerformanceChart from './PerformanceChart';
 import BarChart from "./BarChart"
+import PriceChart from "./PriceChart"
 import styled from "styled-components";
 import React, {useRef, useEffect, useState} from 'react';
 import {ethers} from 'ethers'
@@ -32,12 +33,12 @@ import { select, csv, line, curveCardinal, timeFormat, timeParse } from "d3";
 const Container = styled.div`
 	background-color: #506B80;
 	width: 900px;
-	min-width: 300px;
 	height: 400px;
 	border-radius: 40px;
-	overflow: hidden;
 	position: relative;
+	overflow: hidden
 `;
+// min-width: 300px;
 // background-color: #201d47; - purplish
 
 const  App = () => {
@@ -54,6 +55,8 @@ const  App = () => {
 	const [signer, setSigner] = useState(null);
 	const [admin, setAdmin] = useState(false);
 
+	const startingBal = 500
+	const startingPrice = 83.8
 
 	$.ajaxSetup({
 		crossDomain: true
@@ -70,7 +73,7 @@ const  App = () => {
 		$.getJSON(uri, function(data){
 			console.log("Response: ", data)
 			setBalance(((data.avax_bal * data.Close) + data.usd_bal).toFixed(2))
-			setProfit((((((data.avax_bal * data.Close) + data.usd_bal)/500)-1)*100).toFixed(2))
+			setProfit((((((data.avax_bal * data.Close) + data.usd_bal)/startingBal)-1)*100).toFixed(2)) // This uses a hard-coded starting value
 			setMessage(data)
 		})
 		// setPrice(price + 1)
@@ -205,8 +208,10 @@ const  App = () => {
 	// {
 		return (
 			<div className="App">
-
-					<h2>AVAX: ${message.Close}</h2>
+					<h3><InlineIcon icon="logos:ethereum-color"/> {(message.avax_bal * message.Close/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% / {(message.usd_bal/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% <InlineIcon icon="noto:dollar-banknote"/></h3>
+					<Container>
+						<PriceChart />
+					</Container>
 					<Container>
 						<Chart />
 					</Container>
@@ -216,7 +221,7 @@ const  App = () => {
 					{/* <img src={logo} className="App-logo" alt="logo" /> */}
 					<div>
 						<h2>Bot Profit: {profit}%</h2>
-						<h3><InlineIcon icon="logos:ethereum-color"/> {(message.avax_bal * message.Close/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% / {(message.usd_bal/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% <InlineIcon icon="noto:dollar-banknote"/></h3>
+						<h2>AVAX Profit: {(((message.Close/startingPrice) - 1) * 100).toFixed(2)}%</h2>
 						{renderDollarBalance()}
 					</div>
 					<Container>
@@ -226,6 +231,7 @@ const  App = () => {
 					<Button variant="contained" size="large" className='entryButton' type='submit' color="primary" onClick={connectWalletHandler}>
 						{connButtonText}
 					</Button>
+					<br/>
 			</div>
   );
 	// }

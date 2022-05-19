@@ -39,11 +39,10 @@ def on_new_candle(event):
         df.index = pd.DatetimeIndex(df['Date'])
         df = config.strategy.define_indicators(ticker,df, ['riskribbon'] ) # get rid of the 'indicators' argument
         # df = pytrade.define_indicators(ticker,df)
-        ACCOUNT.get_balances() # Perhaps this should be below strategy.generate_signals() It really depends on whether it takes much time
         config.strategy.generate_signals(df, ACCOUNT)
+        ACCOUNT.get_balances() # Perhaps this should be below strategy.generate_signals() It really depends on whether it takes much time
         print('\nAccount Balacnces:\n' + str(ACCOUNT.btc_bal) + ' BTC\n' + str(ACCOUNT.eth_bal) + ' ETH\n'
-         + str(ACCOUNT.avax_bal) + ' AVAX\n' + str(ACCOUNT.sol_bal) + ' SOL\n' + 
-         str(ACCOUNT.luna_bal) + ' LUNA\n' + str(ACCOUNT.usd_bal) + ' USD\n')
+         + str(ACCOUNT.avax_bal) + ' AVAX\n' + str(ACCOUNT.sol_bal) + ' SOL\n')
 
 app = Flask(__name__)
 CORS(app)

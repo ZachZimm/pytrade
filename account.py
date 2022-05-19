@@ -16,7 +16,6 @@ class Account:
         self.avax_bal = 0.0
         self.usd_bal = 0.0
         self.sol_bal = 0.0
-        self.luna_bal = 0.0
         self.last_entry = 0.0
         self.is_long = False
         self.is_short = False
@@ -130,5 +129,4 @@ class Account:
         self.eth_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['XETH'])
         self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['AVAX'])
         self.sol_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['SOL'])
-        self.luna_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['LUNA'])
         self.usd_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['ZUSD'])

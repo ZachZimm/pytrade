@@ -9,14 +9,20 @@ import { Group } from "@visx/group";
 import { Line, LinePath, Bar } from "@visx/shape";
 import { curveMonotoneX, curveCardinal, curveCardinalClosed, curveNatural, curveBasis } from "@visx/curve";
 import { localPoint } from "@visx/event"
+import styled from "styled-components";
 
-const getYValue = (d) => d['dev_sma'];
-const getYValue2 = (d) => d['dev_dir'];
-
+const get_dev_sma = (d) => d['dev_sma'];
+const get_dev_dir = (d) => d['dev_dir'];
+const get_close = (d) => d['Close']
+const get_open_long = (d) => d['open_long']
+const get_open_short = (d) => d['open_short']
 const getXValue = (d) => { return new Date(d['Date']) }
  
 const bisectDate = bisector(getXValue).left;
 
+const Wrapper = styled.div`
+  
+`;
 
 const tooltipStyles = {
     ...defaultStyles,
@@ -36,11 +42,15 @@ const tooltipStyles = {
 const Chart = () => {
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState([])
+    const [dataCount, setDataCount] = useState(100)
     const [ref, bounds] = useMeasure()
+    // const [ref2, bounds] = useMeasure()
     const {showTooltip, hideTooltip,tooltipData,tooltipLeft,tooltipTop} =  useTooltip();
 
-    const width = bounds.width || 100;
-    const height = bounds.height || 100;
+    // const width = bounds.width || 100;
+    // const height = bounds.height || 100;
+    const width = 900
+    const height = 400
 
     const get_strategy_data = async () =>{
         csv('http://71.94.94.154:8080/strategy_data').then( (d) => {
@@ -60,9 +70,8 @@ const Chart = () => {
                 d['y'] = d['Close']
             })
             // setData(d) 
-            setData(d.slice(-100))
+            setData(d.slice(-1 * dataCount))
             setLoading(false)
-            console.log(2)
             setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
         })
     }
@@ -72,8 +81,6 @@ const Chart = () => {
 		{
 			get_strategy_data()
 		}
-		// console.log(data)
-        console.log(1)
 		// query()
 	}, [data]);
 
@@ -87,20 +94,21 @@ const Chart = () => {
     const yScale = scaleLinear({
         range: [height, 0],
         domain: [
-            Math.min(...data.map(getYValue2)) - 0.5,
-            Math.max(...data.map(getYValue2)) + 0.5,
+            Math.min(Math.min(...data.map(get_dev_dir))-.025 ,Math.min(...data.map(get_dev_sma))-0.025),
+            Math.max(Math.max(Math.max(...data.map(get_dev_dir))+.025 ,Math.max(...data.map(get_dev_sma))+0.025),0.25)
         ],
     },[data])
 
-    return (<>
+    return (
+        <Wrapper>
             <svg ref={ref} width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
                 <Group>
                     <Threshold
                         id={`${Math.random()}`}
                         data={data}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y0={(d) => yScale(getYValue2(d)) ?? 0}
-                        y1={(d) => yScale(getYValue(d)) ?? 0}
+                        y0={(d) => yScale(get_dev_dir(d)) ?? 0}
+                        y1={(d) => yScale(get_dev_sma(d)) ?? 0}
                         clipAboveTo={0}
                         clipBelowTo={height}
                         curve={curveBasis}
@@ -117,7 +125,7 @@ const Chart = () => {
                         data={data}
                         key={(d) => `bar-${getXValue(d)}`}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y={(d) => yScale(getYValue(d)) ?? 0}
+                        y={(d) => yScale(get_dev_sma(d)) ?? 0}
                         stroke="#EDD2AE"
                         strokeWidth={1.5}
                         curve={curveNatural}
@@ -127,7 +135,7 @@ const Chart = () => {
                         data={data}
                         key={Math.random()}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y={(d) => yScale(getYValue2(d)) ?? 0}
+                        y={(d) => yScale(get_dev_dir(d)) ?? 0}
                         stroke="#6CB8F4"
                         strokeWidth={1.5}
                         curve={curveBasis}
@@ -144,40 +152,37 @@ const Chart = () => {
                         curve={curveNatural}
 
                     />
-                </Group>
-                {tooltipData ? (
-                    <Group>
-                        <Bar
-                            width={width}
-                            height={height}
-                            fill="transparent"
-                            x={(d) => xScale(getXValue(d)) ?? 0}
-                            y={(d) => yScale(getYValue2(d)) ?? 0}
-                            onMouseMove={(event) => {
-                                const {x} = localPoint(event) || { x: 0 }
-                                const x0 = xScale.invert(x)
-                                const index = bisectDate(data,x0,1)
-                                const d0 = data[index - 1]
-                                const d1 = data[index]
-                                let d = d0;
-                                if(d1 && getXValue(d1)) {
-                                    d =
-                                    x0.valueOf() - getXValue(d0).valueOf() >
-                                    getXValue(d1).valueOf() - x0.valueOf()
-                                        ? d1
-                                        : d0;
-                                }
+                    <Bar
+                        width={width}
+                        height={height}
+                        fill="transparent"
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y={(d) => yScale(get_dev_dir(d)) ?? 0}
+                        onMouseMove={(event) => {
+                            const {x} = localPoint(event) || { x: 0 }
+                            const x0 = xScale.invert(x)
+                            const index = bisectDate(data,x0,1)
+                            const d0 = data[index - 1]
+                            const d1 = data[index]
+                            let d = d0;
+                            if(d1 && getXValue(d1)) {
+                                d =
+                                x0.valueOf() - getXValue(d0).valueOf() > // This is what I was looking for in regard to scale
+                                getXValue(d1).valueOf() - x0.valueOf()
+                                    ? d1
+                                    : d0;
+                            }
 
-                                showTooltip({
-                                    tooltipData: d,
-                                    tooltipLeft: x,
-                                    tooltipTop: yScale(getYValue2(d))
-                                });
-                            }}
-                            onMouseLeave={() => hideTooltip()}
-                        />
-                    </Group>
-                ): null }
+                            showTooltip({
+                                tooltipData: d,
+                                tooltipLeft: x,
+                                tooltipTop: yScale(get_dev_dir(d))
+                            });
+                        }}
+                        onMouseLeave={() => hideTooltip()}
+                    />
+                </Group>
+                
                 
             {tooltipData ? (
             <Group>
@@ -192,21 +197,22 @@ const Chart = () => {
                 <circle
                 cx={tooltipLeft}
                 cy={tooltipTop}
-                r={8}
-                fill="#FF4DCA"
-                fillOpacity={0.5}
+                r={4.5}
+                fill="#FFEDB7"
+                fillOpacity={0.65}
                 pointerEvents="none"
                 />
                 <circle
                 cx={tooltipLeft}
                 cy={tooltipTop}
-                r={4}
-                fill="#FF4DCA"
+                r={2}
+                fill="#9FE37E"
                 pointerEvents="none"
                 />
             </Group>
             ) : null}
         </svg>
+
         {tooltipData ? (
         <TooltipWithBounds
           key={Math.random()}
@@ -214,11 +220,15 @@ const Chart = () => {
           left={tooltipLeft}
           style={tooltipStyles}
         >
-          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}:{" "}
-          <b>{getYValue2(tooltipData)}</b>
+          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}
+          {/* <br/><b>{get_dev_dir(tooltipData).toFixed(2)}</b><br/> */}
+          {/* <b>{get_dev_sma(tooltipData).toFixed(2)}</b><br/> */}
+          {": "}
+          <b>{(get_dev_dir(tooltipData)-get_dev_sma(tooltipData)).toFixed(2)}%</b>
         </TooltipWithBounds>
       ) : null}
-        </>
+
+    </Wrapper>
     );
 };
 

@@ -83,7 +83,6 @@ def new_candle():
     AVAXUSD.new_candle(_datetime)
     SOLUSD.new_candle(_datetime)
     SOLBTC.new_candle(_datetime)
-    LUNAUSD.new_candle(_datetime)
 
 def handle_command(_command):
     command = json.loads(_command)
@@ -132,9 +131,6 @@ def ws_message(ws, message): # Connect to WebSocket API and subscribe to trade f
         if(obj[3] == 'SOL/BTC'):
             global SOLBTC
             SOLBTC.new_data(float(obj[1][0][0]))
-        if(obj[3] == 'LUNA/USD'):
-            global LUNAUSD
-            LUNAUSD.new_data(float(obj[1][0][0]))
     # [321, [['60938.20000', '0.03825548', '1635112722.279822', 's', 'l', '']], 'trade', 'XBT/USD'] The sort of thing you get back from Kraken
 
 def ws_open(ws):
@@ -165,7 +161,6 @@ ETHUSD = OHLC("ETHUSD")
 AVAXUSD = OHLC("AVAXUSD")
 SOLUSD = OHLC("SOLUSD")
 SOLBTC = OHLC("SOLBTC")
-LUNAUSD = OHLC("LUNAUSD")
 WSSTARTED = False
 SCHEDULER = BackgroundScheduler()
 # logging.basicConfig(level=logging.DEBUG)

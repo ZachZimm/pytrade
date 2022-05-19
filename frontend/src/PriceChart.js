@@ -3,30 +3,19 @@ import React, {useEffect, useState,} from 'react';
 import useMeasure from 'react-use-measure'
 import {defaultStyles, useTooltip, TooltipWithBounds} from "@visx/tooltip"
 import {scaleLinear, scaleTime} from "@visx/scale"
+import {Threshold} from "@visx/threshold"
 import {extent, bisector} from "d3-array"
 import { Group } from "@visx/group";
 import { Line, LinePath, Bar } from "@visx/shape";
 import { curveMonotoneX, curveCardinal, curveCardinalClosed, curveNatural, curveBasis } from "@visx/curve";
 import { localPoint } from "@visx/event"
-import { Axis, AxisBottom, AxisLeft } from "@visx/axis";
 import styled from "styled-components";
-import $, { data } from 'jquery'
 
-const startingBal = 500
-const startingPrice = 83.8
-
-const tickLabelProps = () => ({
-    fill: "#a6a6a6",
-    fontSize: 11,
-    fontFamily: "sans-serif",
-    label: "%"
-  });
-
-const getYValue = (d) => (d['price']/startingPrice);
-const getYValue2 = (d) => (d['balance']/startingBal);
-const getNewValue = (d) => (d['Close']/startingPrice);
-const getNewValue2 = (d) => (((d['Close'] * d['avax_bal']) + d['usd_bal'])/startingBal);
-
+const get_sma_for_dev = (d) => d['sma_for_dev'];
+const get_dev_dir = (d) => d['dev_dir'];
+const get_close = (d) => d['Close']
+const get_open_long = (d) => d['open_long']
+const get_open_short = (d) => d['open_short']
 const getXValue = (d) => { return new Date(d['Date']) }
  
 const bisectDate = bisector(getXValue).left;
@@ -44,17 +33,14 @@ const tooltipStyles = {
       '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
   };
 
-  const accessors = {
-    xAccessor: d => d['Date'],
-    yAccessor: d => d['price'],
-  };
 
 
-const PerformanceChart = () => {
+const PriceChart = () => {
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState([])
-    const [newData, setNewData] = useState([])
+    const [dataCount, setDataCount] = useState(100)
     const [ref, bounds] = useMeasure()
+    // const [ref2, bounds] = useMeasure()
     const {showTooltip, hideTooltip,tooltipData,tooltipLeft,tooltipTop} =  useTooltip();
 
     // const width = bounds.width || 100;
@@ -63,78 +49,34 @@ const PerformanceChart = () => {
     const height = 400
 
     const get_strategy_data = async () =>{
-
-        var current = new Date()
-        var dateEntry = current.getFullYear() + "-" +
-                    (current.getUTCMonth()+1) + "-" + 
-                    current.getUTCDate() + " " +
-                    current.getUTCHours() + ":" +
-                    current.getMinutes() + ":" +
-                    current.getSeconds() + "." +
-                    current.getMilliseconds()
-        var new_entry = {
-            Date: dateEntry, 
-            price: newData.Close,
-            balance: (newData.avax_bal * newData.Close) + newData.usd_bal
-        }
-
-        csv('http://71.94.94.154:8080/strategy_log').then( (d) => {
+        csv('http://71.94.94.154:8080/strategy_data').then( (d) => {
             d.map((d) => {
-                let new_date = (d['Date'].split('.')[0])
+                if(d['sma_for_dev'] === ""){ d['sma_for_dev'] = 0}
+                if(d['sma_for_dev'] === "NaN"){ d['sma_for_dev'] = 0}
+                if(d['dev_dir'] === ""){ d['dev_dir'] = 0}
+                if(d['d'] === ""){ d['d'] = 0}
+                let new_date = d['Date'].split('.')[0]
                 d['Date'] = new_date
-                d['price'] = Number(d['price'])
+                d['sma_for_dev'] = Number(d['sma_for_dev'])
+                d['d'] = Number(d['dev_dir'])
+                d['dev_dir'] = Number(d['dev_dir'])
+                d['Close'] = Number(d['Close'])
+                d['dev'] = Number(d['dev'])
+                d['0'] = 0
+                d['y'] = d['Close']
             })
-            d.push(new_entry)
-            console.log(new_entry['Date'])
-            
-            // console.log(dateEntry)
-            // d['Date'] = [...d['Date'], dateEntry]
-            // d['balance'] = [...d['balance'],((newData.avax_bal * newData.Close) + newData.usd_bal)]
-            // d['price'] = [...d['price'],newData.Close]
-            // d['Date'].push(String(dateEntry))
-            // d['price'].push(newData.Close)
-            // d['balance'].push((newData.avax_bal * newData.Close) + newData.usd_bal)
-            
-            
-
-            setData(d) 
-            // setData(d.slice(-100))
+            // setData(d) 
+            setData(d.slice(-1 * dataCount))
             setLoading(false)
+            setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
         })
-
-        
-
-        setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
-    }
-
-    const get_new_data = async () => {
-        var request = '/data' // This should be passed in as an arg
-		// var sub = window.origin.split(':') // For use when frontend, backend, and client are on the same network, sometimes
-		// var uri = sub[0] +':'+ sub[1]
-
-		// Maybe do if(origin == localhost) {}
-		var uri = 'http://71.94.94.154:8080' + request
-		// console.log(origin)
-		
-		$.getJSON(uri, function(data){
-			// console.log("Response: ", data)
-			setNewData(data)
-		})
-        await new Promise(r => setTimeout(r, 2000));
-        setTimeout(get_new_data, 5000) // Check for new data in 5 seconds
     }
 
     useEffect(() => {
 		if(loading === true)
 		{
-            get_new_data()
-            
 			get_strategy_data()
 		}
-        console.log('-')
-        console.log(newData)
-		console.log(data)
-        console.log('-')
 		// query()
 	}, [data]);
 
@@ -148,8 +90,8 @@ const PerformanceChart = () => {
     const yScale = scaleLinear({
         range: [height, 0],
         domain: [
-            Math.min(Math.min(...data.map(getYValue2))-.025 ,Math.min(...data.map(getYValue))-.025),
-            Math.max(Math.max(...data.map(getYValue2))+.025 ,Math.max(...data.map(getYValue))+.025),
+            Math.min(Math.min(...data.map(get_close))-.5 ,Math.min(...data.map(get_sma_for_dev))-0.5),
+            Math.max(Math.max(...data.map(get_close))+.5 ,Math.max(...data.map(get_sma_for_dev))+0.5)
         ],
     },[data])
 
@@ -157,52 +99,61 @@ const PerformanceChart = () => {
         <Wrapper>
             <svg ref={ref} width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
                 <Group>
+                    <Threshold
+                        id={`${Math.random()}`}
+                        data={data}
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y0={(d) => yScale(get_close(d)) ?? 0}
+                        y1={(d) => yScale(get_sma_for_dev(d)) ?? 0}
+                        clipAboveTo={0}
+                        clipBelowTo={height}
+                        curve={curveBasis}
+                        belowAreaProps={{
+                        fill: '#8080A6',
+                        fillOpacity: 0.5,
+                        }}
+                        aboveAreaProps={{
+                        fill: '#357341',
+                        fillOpacity: 0.5,
+                        }}
+                    />
                     <LinePath
                         data={data}
                         key={(d) => `bar-${getXValue(d)}`}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y={(d) => yScale(getYValue(d)) ?? 0}
-                        stroke="#F5D482"
-                        strokeWidth={2}
-                        curve={curveMonotoneX}
+                        y={(d) => yScale(get_sma_for_dev(d)) ?? 0}
+                        stroke="#EDD2AE"
+                        strokeWidth={1.5}
+                        curve={curveNatural}
 
                     />
                     <LinePath
                         data={data}
                         key={Math.random()}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y={(d) => yScale(getYValue2(d)) ?? 0}
+                        y={(d) => yScale(get_close(d)) ?? 0}
                         stroke="#6CB8F4"
-                        strokeWidth={2}
-                        curve={curveMonotoneX}
+                        strokeWidth={1.5}
+                        curve={curveBasis}
 
                     />
                     <LinePath
                         data={data}
                         key={Math.random()}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y={(d) => yScale(1)}
+                        y={(d) => yScale(0)}
                         stroke="gray"
                         strokeWidth={1}
                         strokeDasharray="5, 5"
-                        curve={curveMonotoneX}
+                        curve={curveNatural}
 
                     />
-                    <AxisLeft 
-                        left={0} 
-                        scale={yScale} 
-                        stroke='none'
-                        tickStroke="none"
-                        tickLabelProps={tickLabelProps}
-                        numTicks={5}
-                    />
                     <Bar
-                        key={Math.random()}
                         width={width}
                         height={height}
                         fill="transparent"
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y={(d) => yScale(getYValue2(d)) ?? 0}
+                        y={(d) => yScale(get_close(d)) ?? 0}
                         onMouseMove={(event) => {
                             const {x} = localPoint(event) || { x: 0 }
                             const x0 = xScale.invert(x)
@@ -212,7 +163,7 @@ const PerformanceChart = () => {
                             let d = d0;
                             if(d1 && getXValue(d1)) {
                                 d =
-                                x0.valueOf() - getXValue(d0).valueOf() >
+                                x0.valueOf() - getXValue(d0).valueOf() > // This is what I was looking for in regard to scale
                                 getXValue(d1).valueOf() - x0.valueOf()
                                     ? d1
                                     : d0;
@@ -221,12 +172,13 @@ const PerformanceChart = () => {
                             showTooltip({
                                 tooltipData: d,
                                 tooltipLeft: x,
-                                tooltipTop: yScale(getYValue2(d))
+                                tooltipTop: yScale(get_close(d))
                             });
                         }}
                         onMouseLeave={() => hideTooltip()}
                     />
                 </Group>
+                
                 
             {tooltipData ? (
             <Group>
@@ -256,6 +208,7 @@ const PerformanceChart = () => {
             </Group>
             ) : null}
         </svg>
+
         {tooltipData ? (
         <TooltipWithBounds
           key={Math.random()}
@@ -263,13 +216,17 @@ const PerformanceChart = () => {
           left={tooltipLeft}
           style={tooltipStyles}
         >
-          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}<br/>
-          Strategy: <b>{((getYValue2(tooltipData)-1)*100).toFixed(2)}%</b><br/>
-          Uderlying: <b>{((getYValue(tooltipData)-1)*100).toFixed(2)}%</b>
+          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}
+          {/* <br/><b>{get_dev_dir(tooltipData).toFixed(2)}</b><br/> */}
+          {/* <b>{get_sma_for_dev(tooltipData).toFixed(2)}</b><br/> */}
+          {": "}
+          Price: <b>${get_close(tooltipData).toFixed(2)}</b><br/>
+          SMA: <b>${get_sma_for_dev(tooltipData).toFixed(2)}</b>
         </TooltipWithBounds>
       ) : null}
-        </Wrapper>
+
+    </Wrapper>
     );
 };
 
-export default PerformanceChart;
+export default PriceChart;
