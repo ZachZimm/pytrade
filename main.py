@@ -42,7 +42,7 @@ def on_new_candle(event):
         config.strategy.generate_signals(df, ACCOUNT)
         ACCOUNT.get_balances() # Perhaps this should be below strategy.generate_signals() It really depends on whether it takes much time
         print('\nAccount Balacnces:\n' + str(ACCOUNT.btc_bal) + ' BTC\n' + str(ACCOUNT.eth_bal) + ' ETH\n'
-         + str(ACCOUNT.avax_bal) + ' AVAX\n' + str(ACCOUNT.sol_bal) + ' SOL\n')
+         + str(ACCOUNT.avax_bal) + ' AVAX\n' + str(ACCOUNT.sol_bal) + ' SOL\n' + '$' + str(ACCOUNT.usd_bal) + ' USD\n')
 
 app = Flask(__name__)
 CORS(app)
