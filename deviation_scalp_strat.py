@@ -32,7 +32,8 @@ def define_signals(df):
     # df['open_long'] = np.where(((df['dev_dir'] > df['dev_sma']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) <= df['dev_sma'].shift(1)), df['Close'] * 1, np.nan)
     # df['open_short'] = np.where(((df['dev_dir'] < df['dev_sma']) & (df['dev_sma'] < 0)) & (df['dev_dir'].shift(1) >= df['dev_sma'].shift(1)), df['Close'] * 1, np.nan)
     # New
-    df['open_long'] = np.where(((df['dev_dir'] > df['dev_lower']) & (df['dev_sma'] < 0)) & (df['dev_dir'].shift(1) <= df['dev_lower'].shift(1)), df['Close'] * 1, np.nan) # Buy on cross over lower band
+    df['open_long'] = np.where(((df['dev_dir'] > df['dev_lower']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) <= df['dev_lower'].shift(1)), df['Close'] * 1, np.nan) # Buy on cross over lower band
+    # df['open_long'] = np.where(((df['dev_dir'] > df['dev_lower']) & (df['dev_sma'] < 0)) & (df['dev_dir'].shift(1) <= df['dev_lower'].shift(1)), df['Close'] * 1, np.nan) # Buy on cross over lower band
     df['open_short'] = np.where(((df['dev_dir'] < df['dev_upper']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) >= df['dev_upper'].shift(1)), df['Close'] * 1, np.nan) # Sell on cross under upper band
     return df
 

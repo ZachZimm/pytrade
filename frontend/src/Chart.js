@@ -13,6 +13,8 @@ import styled from "styled-components";
 
 const get_dev_sma = (d) => d['dev_sma'];
 const get_dev_dir = (d) => d['dev_dir'];
+const get_dev_upper = (d) => d['dev_upper']
+const get_dev_lower = (d) => d['dev_lower']
 const get_close = (d) => d['Close']
 const get_open_long = (d) => d['open_long']
 const get_open_short = (d) => d['open_short']
@@ -64,6 +66,8 @@ const Chart = () => {
                 d['dev_sma'] = Number(d['dev_sma'])
                 d['d'] = Number(d['dev_dir'])
                 d['dev_dir'] = Number(d['dev_dir'])
+                d['dev_upper'] = Number(d['dev_upper'])
+                d['dev_lower'] = Number(d['dev_lower'])
                 d['Close'] = Number(d['Close'])
                 d['dev'] = Number(d['dev'])
                 d['0'] = 0
@@ -128,6 +132,26 @@ const Chart = () => {
                         y={(d) => yScale(get_dev_sma(d)) ?? 0}
                         stroke="#EDD2AE"
                         strokeWidth={1.5}
+                        curve={curveNatural}
+
+                    />
+                    <LinePath
+                        data={data}
+                        key={(d) => `bar-${getXValue(d)}`}
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y={(d) => yScale(get_dev_upper(d)) ?? 0}
+                        stroke="#EDD2AE"
+                        strokeWidth={.75}
+                        curve={curveNatural}
+
+                    />
+                    <LinePath
+                        data={data}
+                        key={(d) => `bar-${getXValue(d)}`}
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y={(d) => yScale(get_dev_lower(d)) ?? 0}
+                        stroke="#EDD2AE"
+                        strokeWidth={.75}
                         curve={curveNatural}
 
                     />

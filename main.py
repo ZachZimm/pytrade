@@ -108,20 +108,18 @@ def check_for_order_log():
 if __name__ == "__main__":
     now = datetime.now()
     check_for_order_log()
-    
     data_collect_start = round_dt_up(now, timedelta(minutes=(config.interval/60)))
     data_record_and_trade_start = data_collect_start + timedelta(minutes=config.interval/60, seconds=1)
 
     SCHEDULER.add_job(pytrade.run, args=[SCHEDULER], run_date=data_collect_start) # I should probably use some arguments here such as ticker(s) and interval
     SCHEDULER.add_listener(on_new_candle, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
     SCHEDULER.start()
-
     ACCOUNT.get_balances()
-
+    print()
     print("Now:\t\t" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second))
     print("Start:\t\t" + str(data_collect_start.hour) + ":" + str(data_collect_start.minute) + ":" + str(data_collect_start.second))
     print("First Candle:\t" + str(data_collect_start.hour) + ":" + str(data_collect_start.minute + 5) + ":" + str(data_collect_start.second))
-    
+    print("\n")    
     import chart as chart
     chart.strategy = config.strategy # The strategy can be switched out like this, and probably just the same for the backtester
 
@@ -130,5 +128,4 @@ if __name__ == "__main__":
 
     # TODO
     # Keep a CSV of executed trades, both sides of the trade
-    # Use the config file, I shouldn't be hard-coding tickers or parameters anywhere but config.py
     # Build a backtester

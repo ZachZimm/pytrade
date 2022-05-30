@@ -41,7 +41,7 @@ const Container = styled.div`
 // min-width: 300px;
 // background-color: #201d47; - purplish
 
-const  App = () => {
+const App = () => {
 	const [message, setMessage] = useState([{}])
 	const [balance, setBalance] = useState()
 	const [profit, setProfit] = useState(0)
