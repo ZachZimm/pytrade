@@ -42,6 +42,11 @@ const Container = styled.div`
 // background-color: #201d47; - purplish
 
 const App = () => {
+	const [stratData, setStratData] = useState([])
+	const [perfData, setPerfData] = useState([])
+	const [perfLoading, setPerfLoading] = useState(true)
+	const [dataLoading, setDataLoading] = useState(true)
+	const [dataCount, setDataCount] = useState(100)
 	const [message, setMessage] = useState([{}])
 	const [balance, setBalance] = useState()
 	const [profit, setProfit] = useState(0)
@@ -63,15 +68,9 @@ const App = () => {
 	})
 	const query = async () => {
 		var request = '/data' // This should be passed in as an arg
-		// var sub = window.origin.split(':') // For use when frontend, backend, and client are on the same network, sometimes
-		// var uri = sub[0] +':'+ sub[1]
-
-		// Maybe do if(origin == localhost) {}
 		var uri = 'http://71.94.94.154:8080' + request
-		// console.log(origin)
-		
 		$.getJSON(uri, function(data){
-			console.log("Response: ", data)
+			// console.log("Response: ", data)
 			setBalance(((data.avax_bal * data.Close) + data.usd_bal).toFixed(2))
 			setProfit((((((data.avax_bal * data.Close) + data.usd_bal)/startingBal)-1)*100).toFixed(2)) // This uses a hard-coded starting value
 			setMessage(data)
@@ -81,13 +80,85 @@ const App = () => {
 		setTimeout(query,5000)
 	}
 
+	const get_strategy_data = () =>{
+        csv('http://71.94.94.154:8080/strategy_data').then( async (d) => {
+            await Promise.all(d.map(async(d) => {
+                if(d['dev_sma'] === ""){ d['dev_sma'] = 0}
+                if(d['dev_sma'] === "NaN"){ d['dev_sma'] = 0}
+                if(d['dev_dir'] === ""){ d['dev_dir'] = 0}
+                if(d['d'] === ""){ d['d'] = 0}
+                let new_date = d['Date'].split('.')[0]
+                d['Date'] = new_date
+                d['dev_sma'] = Number(d['dev_sma'])
+                d['d'] = Number(d['dev_dir'])
+                d['dev_dir'] = Number(d['dev_dir'])
+				d['sma_for_dev'] = Number(d['sma_for_dev'])
+                d['dev_upper'] = Number(d['dev_upper'])
+                d['dev_lower'] = Number(d['dev_lower'])
+                d['Close'] = Number(d['Close'])
+                d['dev'] = Number(d['dev'])
+                d['0'] = 0
+                d['y'] = d['Close']
+				// return d
+            }))
+			console.log(d)
+            setStratData(d.slice(-1 * dataCount))
+            setDataLoading(false)
+            setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
+        })
+    }
+
+	const get_performance_data =  () =>{
+
+        var current = new Date()
+        var dateEntry = current.getFullYear() + "-" +
+                    (current.getUTCMonth()+1) + "-" + 
+                    current.getUTCDate() + " " +
+                    current.getUTCHours() + ":" +
+                    current.getMinutes() + ":" +
+                    current.getSeconds() + "." +
+                    current.getMilliseconds()
+        var new_entry = {
+            Date: dateEntry, 
+            price: message.Close,
+            balance: (message.avax_bal * message.Close) + message.usd_bal
+        }
+
+        csv('http://71.94.94.154:8080/strategy_log').then( async (d) => {
+            await Promise.all(d.map((d) => {
+                let new_date = (d['Date'].split('.')[0])
+                d['Date'] = new_date
+                d['price'] = Number(d['price'])
+            }))
+            d.push(new_entry)
+            // console.log(new_entry['Date'])
+            
+            // console.log(dateEntry)
+            // d['Date'] = [...d['Date'], dateEntry]
+            // d['balance'] = [...d['balance'],((newData.avax_bal * newData.Close) + newData.usd_bal)]
+            // d['price'] = [...d['price'],newData.Close]
+            // d['Date'].push(String(dateEntry))
+            // d['price'].push(newData.Close)
+            // d['balance'].push((newData.avax_bal * newData.Close) + newData.usd_bal)
+            
+            
+
+            setPerfData(d) 
+            // setData(d.slice(-100))
+            setPerfLoading(false)
+        })
+        setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
+    }
+
 	useEffect(() => {
 		query()
+		get_strategy_data()
+		// get_performance_data() // Need to get performaceChart working with passed-in data
 	}, []) // empty array - runs once after first render
 	
 	useEffect(()=>{
 
-	}, [query, defaultAccount]);
+	}, [query, get_strategy_data, stratData, get_performance_data, perfData, message, defaultAccount,]);
 
 	
 	// const pulseGarage = async (e) => {
@@ -171,18 +242,6 @@ const App = () => {
 		window.location.reload();
 	}
 
-	// const interval = setInterval(async () => {
-	// 	// method to be executed;
-	// 	setCount(count + 1)
-	// 	console.log(count)
-	// 	// setIntervalStarted(true)
-	//   }, 5000);
-
-	// listen for account changes
-	// window.ethereum.on('accountsChanged', accountChangedHandler);
-
-	// window.ethereum.on('chainChanged', chainChangedHandler);
-	// {chart_data.map((Date, dev_sma) => {
 	const renderDollarBalance = () => {
 		if(admin){
 			return <h3>${balance}</h3>
@@ -210,10 +269,10 @@ const App = () => {
 			<div className="App">
 					<h3><InlineIcon icon="logos:ethereum-color"/> {(message.avax_bal * message.Close/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% / {(message.usd_bal/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% <InlineIcon icon="noto:dollar-banknote"/></h3>
 					<Container>
-						<PriceChart />
+						<PriceChart data={stratData} dataLoading={dataLoading}/>
 					</Container>
 					<Container>
-						<Chart />
+						<Chart data={stratData} dataLoading={dataLoading}/>
 					</Container>
 					{/* <Container>
 						<BarChart />
@@ -225,7 +284,7 @@ const App = () => {
 						{renderDollarBalance()}
 					</div>
 					<Container>
-						<PerformanceChart />
+						<PerformanceChart data={perfData}/>
 					</Container>
 					<br/>
 					<Button variant="contained" size="large" className='entryButton' type='submit' color="primary" onClick={connectWalletHandler}>

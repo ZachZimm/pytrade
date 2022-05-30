@@ -50,7 +50,7 @@ const tooltipStyles = {
   };
 
 
-const PerformanceChart = () => {
+const PerformanceChart = (props) => {
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState([])
     const [newData, setNewData] = useState([])
@@ -85,7 +85,7 @@ const PerformanceChart = () => {
                 d['price'] = Number(d['price'])
             })
             d.push(new_entry)
-            console.log(new_entry['Date'])
+            // console.log(new_entry['Date'])
             
             // console.log(dateEntry)
             // d['Date'] = [...d['Date'], dateEntry]
@@ -131,10 +131,10 @@ const PerformanceChart = () => {
             
 			get_strategy_data()
 		}
-        console.log('-')
-        console.log(newData)
-		console.log(data)
-        console.log('-')
+        // console.log('-')
+        // console.log(newData)
+		// console.log(data)
+        // console.log('-')
 		// query()
 	}, [data]);
 

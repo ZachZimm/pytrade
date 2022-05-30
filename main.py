@@ -72,15 +72,26 @@ def serve_data():
 
 @app.route("/strategy_data", methods=["GET"])
 def serve_strategy_data():
-    
     path = 'data/' + config.trade_ticker + '-active_strategy.csv'
+    data = pd.read_csv(path, index_col=0) # If there is old data, use that
+    return data[config.recent_data_length * -1:].to_csv()
     # return send_from_directory('data', path)
-    returntext = ""
-    with open(path, 'r') as f:
-        returntext = f.read()
-    f.close()
-    if (request.method == "GET"): return returntext
-    else: return render_template('content.html', text=returntext)
+    # returntext = ""
+    # with open(path, 'r') as f:
+    #     returntext = f.read()
+    # f.close()
+    # if (request.method == "GET"): return returntext
+    # else: return render_template('content.html', text=returntext)
+
+@app.route("/strategy_data_full", methods=["GET"])
+def serve_strategy_data_full():
+    path = 'data/' + config.trade_ticker + '-active_strategy.csv'
+    data = pd.read_csv(path) # If there is old data, use that
+    del data['Unnamed: 0']
+    del data ['Date.1']
+    return data.to_csv()
+    # return data['Unnamed: 0'].to_csv()
+
 
 @app.route("/strategy_log", methods=["GET"])
 def serve_strategy_log():

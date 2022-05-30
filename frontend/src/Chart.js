@@ -1,5 +1,5 @@
 import {csv, timeFormat} from "d3"
-import React, {useEffect, useState,} from 'react';
+import React, {Component, useEffect, useState,} from 'react';
 import useMeasure from 'react-use-measure'
 import {defaultStyles, useTooltip, TooltipWithBounds} from "@visx/tooltip"
 import {scaleLinear, scaleTime} from "@visx/scale"
@@ -41,7 +41,7 @@ const tooltipStyles = {
   };
 
 
-const Chart = () => {
+const Chart = (props) => {
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState([])
     const [dataCount, setDataCount] = useState(100)
@@ -54,39 +54,42 @@ const Chart = () => {
     const width = 900
     const height = 400
 
-    const get_strategy_data = async () =>{
-        csv('http://71.94.94.154:8080/strategy_data').then( (d) => {
-            d.map((d) => {
-                if(d['dev_sma'] === ""){ d['dev_sma'] = 0}
-                if(d['dev_sma'] === "NaN"){ d['dev_sma'] = 0}
-                if(d['dev_dir'] === ""){ d['dev_dir'] = 0}
-                if(d['d'] === ""){ d['d'] = 0}
-                let new_date = d['Date'].split('.')[0]
-                d['Date'] = new_date
-                d['dev_sma'] = Number(d['dev_sma'])
-                d['d'] = Number(d['dev_dir'])
-                d['dev_dir'] = Number(d['dev_dir'])
-                d['dev_upper'] = Number(d['dev_upper'])
-                d['dev_lower'] = Number(d['dev_lower'])
-                d['Close'] = Number(d['Close'])
-                d['dev'] = Number(d['dev'])
-                d['0'] = 0
-                d['y'] = d['Close']
-            })
-            // setData(d) 
-            setData(d.slice(-1 * dataCount))
-            setLoading(false)
-            setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
-        })
-    }
+    // const get_strategy_data = async () =>{
+    //     csv('http://localhost:8080/strategy_data').then( (d) => {
+    //         d.map((d) => {
+    //             if(d['dev_sma'] === ""){ d['dev_sma'] = 0}
+    //             if(d['dev_sma'] === "NaN"){ d['dev_sma'] = 0}
+    //             if(d['dev_dir'] === ""){ d['dev_dir'] = 0}
+    //             if(d['d'] === ""){ d['d'] = 0}
+    //             let new_date = d['Date'].split('.')[0]
+    //             d['Date'] = new_date
+    //             d['dev_sma'] = Number(d['dev_sma'])
+    //             d['d'] = Number(d['dev_dir'])
+    //             d['dev_dir'] = Number(d['dev_dir'])
+    //             d['dev_upper'] = Number(d['dev_upper'])
+    //             d['dev_lower'] = Number(d['dev_lower'])
+    //             d['Close'] = Number(d['Close'])
+    //             d['dev'] = Number(d['dev'])
+    //             d['0'] = 0
+    //             d['y'] = d['Close']
+    //         })
+    //         // setData(d) 
+    //         setData(d.slice(-1 * dataCount))
+    //         setLoading(false)
+    //         setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
+    //     })
+    // }
 
     useEffect(() => {
-		if(loading === true)
-		{
-			get_strategy_data()
-		}
+		// if(loading === true)
+		// {
+            setData(props.data)
+            setLoading(props.loading)
+            // setLoading(false)
+			// get_strategy_data()
+		// }
 		// query()
-	}, [data]);
+	}, [props.data, props.loading]);
 
     if(loading) return <div><h2>Loading...</h2></div>
 
@@ -239,7 +242,7 @@ const Chart = () => {
 
         {tooltipData ? (
         <TooltipWithBounds
-          key={Math.random()}
+          key={getXValue(tooltipData)}
           top={tooltipTop}
           left={tooltipLeft}
           style={tooltipStyles}

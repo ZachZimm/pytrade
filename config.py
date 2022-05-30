@@ -11,5 +11,8 @@ tickers = ['XXBT', 'XETH', 'AVAX', 'USD']
 interval = 300 # 300 seconds, 5 minute candles
 
 # App
+debug = True
+
+# Web
 port = 8080 # backend
-debug = False
+recent_data_length = 500

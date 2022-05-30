@@ -35,7 +35,7 @@ const tooltipStyles = {
 
 
 
-const PriceChart = () => {
+const PriceChart = (props) => {
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState([])
     const [dataCount, setDataCount] = useState(100)
@@ -48,37 +48,39 @@ const PriceChart = () => {
     const width = 900
     const height = 400
 
-    const get_strategy_data = async () =>{
-        csv('http://71.94.94.154:8080/strategy_data').then( (d) => {
-            d.map((d) => {
-                if(d['sma_for_dev'] === ""){ d['sma_for_dev'] = 0}
-                if(d['sma_for_dev'] === "NaN"){ d['sma_for_dev'] = 0}
-                if(d['dev_dir'] === ""){ d['dev_dir'] = 0}
-                if(d['d'] === ""){ d['d'] = 0}
-                let new_date = d['Date'].split('.')[0]
-                d['Date'] = new_date
-                d['sma_for_dev'] = Number(d['sma_for_dev'])
-                d['d'] = Number(d['dev_dir'])
-                d['dev_dir'] = Number(d['dev_dir'])
-                d['Close'] = Number(d['Close'])
-                d['dev'] = Number(d['dev'])
-                d['0'] = 0
-                d['y'] = d['Close']
-            })
-            // setData(d) 
-            setData(d.slice(-1 * dataCount))
-            setLoading(false)
-            setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
-        })
-    }
+    // const get_strategy_data = async () =>{
+    //     csv('http://localhost:8080/strategy_data').then( (d) => {
+    //         d.map((d) => {
+    //             if(d['sma_for_dev'] === ""){ d['sma_for_dev'] = 0}
+    //             if(d['sma_for_dev'] === "NaN"){ d['sma_for_dev'] = 0}
+    //             if(d['dev_dir'] === ""){ d['dev_dir'] = 0}
+    //             if(d['d'] === ""){ d['d'] = 0}
+    //             let new_date = d['Date'].split('.')[0]
+    //             d['Date'] = new_date
+    //             d['sma_for_dev'] = Number(d['sma_for_dev'])
+    //             d['d'] = Number(d['dev_dir'])
+    //             d['dev_dir'] = Number(d['dev_dir'])
+    //             d['Close'] = Number(d['Close'])
+    //             d['dev'] = Number(d['dev'])
+    //             d['0'] = 0
+    //             d['y'] = d['Close']
+    //         })
+    //         // setData(d) 
+    //         setData(d.slice(-1 * dataCount))
+    //         setLoading(false)
+    //         setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
+    //     })
+    // }
 
     useEffect(() => {
-		if(loading === true)
-		{
-			get_strategy_data()
-		}
-		// query()
-	}, [data]);
+        setData(props.data)
+        setLoading(props.loading)
+		// if(loading === true)
+		// {
+		// 	get_strategy_data()
+		// }
+		// // query()
+	}, [props.data, props.loading]);
 
     if(loading) return <div><h2>Loading...</h2></div>
 
@@ -211,7 +213,7 @@ const PriceChart = () => {
 
         {tooltipData ? (
         <TooltipWithBounds
-          key={Math.random()}
+          key={getXValue(tooltipData)}
           top={tooltipTop}
           left={tooltipLeft}
           style={tooltipStyles}
