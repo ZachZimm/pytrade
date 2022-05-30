@@ -24,8 +24,10 @@ const tickLabelProps = () => ({
 
 const getYValue = (d) => (d['price']/startingPrice);
 const getYValue2 = (d) => (d['balance']/startingBal);
+const getYValue3 = (d) => (getYValue2(d) - getYValue(d)) + 1
 const getNewValue = (d) => (d['Close']/startingPrice);
 const getNewValue2 = (d) => (((d['Close'] * d['avax_bal']) + d['usd_bal'])/startingBal);
+const getNewValue3 = (d) => ((((d['Close'] * d['avax_bal']) + d['usd_bal'])/startingBal) - (d['Close']/startingPrice));
 
 const getXValue = (d) => { return new Date(d['Date']) }
  
@@ -83,20 +85,10 @@ const PerformanceChart = (props) => {
                 let new_date = (d['Date'].split('.')[0])
                 d['Date'] = new_date
                 d['price'] = Number(d['price'])
+                d['balance'] = Number(d['balance'])
+                
             })
             d.push(new_entry)
-            // console.log(new_entry['Date'])
-            
-            // console.log(dateEntry)
-            // d['Date'] = [...d['Date'], dateEntry]
-            // d['balance'] = [...d['balance'],((newData.avax_bal * newData.Close) + newData.usd_bal)]
-            // d['price'] = [...d['price'],newData.Close]
-            // d['Date'].push(String(dateEntry))
-            // d['price'].push(newData.Close)
-            // d['balance'].push((newData.avax_bal * newData.Close) + newData.usd_bal)
-            
-            
-
             setData(d) 
             // setData(d.slice(-100))
             setLoading(false)
@@ -148,8 +140,14 @@ const PerformanceChart = (props) => {
     const yScale = scaleLinear({
         range: [height, 0],
         domain: [
-            Math.min(Math.min(...data.map(getYValue2))-.025 ,Math.min(...data.map(getYValue))-.025),
-            Math.max(Math.max(...data.map(getYValue2))+.025 ,Math.max(...data.map(getYValue))+.025),
+            Math.min(
+                Math.min(...data.map(getYValue2))-.025 ,
+                Math.min( Math.min(...data.map(getYValue))-.025),
+                    Math.min(...data.map(getYValue3))-.025),
+            Math.max(
+                Math.max(...data.map(getYValue2))+.025 ,
+                Math.max(Math.max(...data.map(getYValue))+.025),
+                    Math.max(...data.map(getYValue3))+.025)
         ],
     },[data])
 
@@ -176,6 +174,15 @@ const PerformanceChart = (props) => {
                         strokeWidth={2}
                         curve={curveMonotoneX}
 
+                    />
+                    <LinePath
+                        data={data}
+                        key={(d) => `bar-${getXValue(d)}`}
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y={(d) => yScale(getYValue3(d)) ?? 0}
+                        stroke="#00FF80"
+                        strokeWidth={2}
+                        curve={curveMonotoneX}
                     />
                     <LinePath
                         data={data}
@@ -263,9 +270,11 @@ const PerformanceChart = (props) => {
           left={tooltipLeft}
           style={tooltipStyles}
         >
-          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}<br/>
+          
+          &Delta;: <b>{((getYValue3(tooltipData)-1)*100).toFixed(2)}%</b><br/>
           Strategy: <b>{((getYValue2(tooltipData)-1)*100).toFixed(2)}%</b><br/>
-          Uderlying: <b>{((getYValue(tooltipData)-1)*100).toFixed(2)}%</b>
+          Uderlying: <b>{((getYValue(tooltipData)-1)*100).toFixed(2)}%</b><br/>
+          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}<br/>
         </TooltipWithBounds>
       ) : null}
         </Wrapper>

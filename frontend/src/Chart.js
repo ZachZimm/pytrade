@@ -210,7 +210,6 @@ const Chart = (props) => {
                     />
                 </Group>
                 
-                
             {tooltipData ? (
             <Group>
                 <Line
@@ -247,11 +246,11 @@ const Chart = (props) => {
           left={tooltipLeft}
           style={tooltipStyles}
         >
-          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}
+          {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}<br/>
           {/* <br/><b>{get_dev_dir(tooltipData).toFixed(2)}</b><br/> */}
           {/* <b>{get_dev_sma(tooltipData).toFixed(2)}</b><br/> */}
-          {": "}
-          <b>{(get_dev_dir(tooltipData)-get_dev_sma(tooltipData)).toFixed(2)}%</b>
+          Long: <b>{(get_dev_dir(tooltipData)/get_dev_upper(tooltipData)*100).toFixed(2)}%</b><br/>
+          Short: <b>{(get_dev_dir(tooltipData)/get_dev_lower(tooltipData)*100).toFixed(2)}%</b>
         </TooltipWithBounds>
       ) : null}
 
