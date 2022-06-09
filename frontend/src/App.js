@@ -68,7 +68,7 @@ const App = () => {
 	})
 	const query = async () => {
 		var request = '/data' // This should be passed in as an arg
-		var uri = 'http://71.94.94.154:8080' + request
+		var uri = 'http://47.224.218.20:8080' + request
 		$.getJSON(uri, function(data){
 			// console.log("Response: ", data)
 			setBalance(((data.avax_bal * data.Close) + data.usd_bal).toFixed(2))
@@ -81,7 +81,7 @@ const App = () => {
 	}
 
 	const get_strategy_data = () =>{
-        csv('http://71.94.94.154:8080/strategy_data').then( async (d) => {
+        csv('http://47.224.218.20:8080/strategy_data').then( async (d) => {
             await Promise.all(d.map(async(d) => {
                 if(d['dev_sma'] === ""){ d['dev_sma'] = 0}
                 if(d['dev_sma'] === "NaN"){ d['dev_sma'] = 0}
@@ -124,7 +124,7 @@ const App = () => {
             balance: (message.avax_bal * message.Close) + message.usd_bal
         }
 
-        csv('http://71.94.94.154:8080/strategy_log').then( async (d) => {
+        csv('http://47.224.218.20:8080/strategy_log').then( async (d) => {
             await Promise.all(d.map((d) => {
                 let new_date = (d['Date'].split('.')[0])
                 d['Date'] = new_date
