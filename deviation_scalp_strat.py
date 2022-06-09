@@ -17,6 +17,8 @@ def define_dev(df, dev_length, sma_length, dev_lookback):
     df['dev_upper'] = dev_bands.bollinger_hband()
     df['dev_sma'] = dev_bands.bollinger_mavg()
     df['dev_lower'] = dev_bands.bollinger_lband()
+    df['dev_s_sma'] = df['dev_dir'].rolling(window=int(dev_lookback/1.2)).mean()
+    df['dev_s_s_sma'] = df['dev_dir'].rolling(window=int(dev_lookback/2.6)).mean()
     df['0'] = 0 # May not be nessecary
 
     return df
@@ -32,9 +34,13 @@ def define_signals(df):
     # df['open_long'] = np.where(((df['dev_dir'] > df['dev_sma']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) <= df['dev_sma'].shift(1)), df['Close'] * 1, np.nan)
     # df['open_short'] = np.where(((df['dev_dir'] < df['dev_sma']) & (df['dev_sma'] < 0)) & (df['dev_dir'].shift(1) >= df['dev_sma'].shift(1)), df['Close'] * 1, np.nan)
     # New
-    df['open_long'] = np.where(((df['dev_dir'] > df['dev_lower']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) <= df['dev_lower'].shift(1)), df['Close'] * 1, np.nan) # Buy on cross over lower band
-    # df['open_long'] = np.where(((df['dev_dir'] > df['dev_lower']) & (df['dev_sma'] < 0)) & (df['dev_dir'].shift(1) <= df['dev_lower'].shift(1)), df['Close'] * 1, np.nan) # Buy on cross over lower band
-    df['open_short'] = np.where(((df['dev_dir'] < df['dev_upper']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) >= df['dev_upper'].shift(1)), df['Close'] * 1, np.nan) # Sell on cross under upper band
+    # df['open_long'] = np.where(((df['dev_dir'] > df['dev_lower']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) <= df['dev_lower'].shift(1)), df['Close'] * 1, np.nan) # Buy on dev_dir cross over lower band
+    # df['open_short'] = np.where(((df['dev_dir'] < df['dev_upper']) & (df['dev_sma'] > 0)) & (df['dev_dir'].shift(1) >= df['dev_upper'].shift(1)), df['Close'] * 1, np.nan) # Sell on dev_dir cross under upper band
+
+    df['open_long'] = np.where(((df['dev_s_s_sma'] > df['dev_s_sma']) & (df['dev_dir'] > df['dev_s_s_sma'])) & (df['dev_s_s_sma'].shift(1) <= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan) # Buy on dev_super_short_sma (crossover) dev_short_sma
+    df['close_long'] = np.where((df['Close'] < df['min'].shift(1)) & (df['Close'].shift(1) >= df['min'].shift(1)),                                                                                # Sell on lower breakout
+                                df['Close'], np.nan)                                                                                                                                              # open_short does nothing in this configuration
+    df['open_short'] = np.where(False, df['Close'] * 1, np.nan) # Sell on dev_dir cross under upper band
     return df
 
 
@@ -47,7 +53,7 @@ def define_indicators(_ticker, _df, _indicators, is_backtest = False): # This sh
         max_lookback = 2000
     # _df = define_hull(_df)
     _df = define_dev(_df, config.strategy_arguments[0], config.strategy_arguments[1], config.strategy_arguments[2]) # length for deviation calc, reference SMA length, deviation lookback, profit target
-    # _df = define_min_max(_df,5)
+    _df = define_min_max(_df,18)
     _df = define_signals(_df)
     _df.to_csv('data/' + _ticker + '-active_strategy.csv')
     return _df
@@ -103,7 +109,7 @@ def generate_signals(_df, account):
 
         if((account.usd_bal / entry_price) < (balance_threshold * account.avax_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
             entry_vol = (account.usd_bal * order_size) / entry_price
-            exit_vol = account.avax_bal * order_size
+            exit_vol = (account.avax_bal * order_size) * 0.5            # Exit volume is half of entry for the trailing exit on this config
 
         elif(((account.usd_bal / entry_price) * balance_threshold) > (account.avax_bal)): # Hi USD, Low AVAX - in a short position OR successful longs
                                         # this needs to be somehow generalized as an argument, (ticker and weights)
@@ -111,12 +117,12 @@ def generate_signals(_df, account):
                 account.cancel_all()    # maybe cancel_buys(ticker), cancel_long(ticker) or switch_side() ?
                 time.sleep(2)                  # 1?
                 entry_vol = (account.usd_bal * order_size) / entry_price
-                exit_vol = entry_vol
+                exit_vol = entry_vol * 0.5                              # Exit volume is half of entry for the trailing exit on this config
             entry_vol = (account.usd_bal * order_size) / entry_price
-            exit_vol = entry_vol
+            exit_vol = entry_vol * 0.5      
         else:                                                           # The ratio of AVAX:USD or USD:AVAX is less than 5:1 (80/20)
             entry_vol = (account.usd_bal * order_size) / entry_price
-            exit_vol = entry_vol
+            exit_vol = entry_vol * 0.5
 
         account.send_order(_pair = ticker, _type = "buy", _ordertype = "market", 
                        _price = entry_price, _volume = round(entry_vol,2))
@@ -169,9 +175,33 @@ def generate_signals(_df, account):
         account.is_short = True
         # _df['is_short'] = entry_price
 
-    # if(last_row['is_long'][0] != np.nan):
+    elif ((last_row['close_long'].iloc[0] == last_row['Close'].iloc[0]) and (account.is_long)): # I don't want to have to use .iloc[-1] in the conditional, it should be part of last_row
+        entry_price = last_row['Close'].item()
+        
+        if((account.usd_bal / entry_price) < (balance_threshold * account.avax_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
+            if(last_row['Close'] < (account.last_entry * (2-profit_target))):              # presumably, there are open sells - so cancel them before placing a new one
+                account.cancel_all()
+                time.sleep(2)                  # 1?
+            entry_vol = account.avax_bal * order_size
+        elif(((account.usd_bal / entry_price) * balance_threshold) > (account.avax_bal)): # Hi USD, Low AVAX - in a short position OR successful longs -- Shouldn't happen here
+                                        # this needs to be somehow generalized as an argument, (ticker and weights)
+            entry_vol = account.avax_bal * order_size
+        else:
+            entry_vol = account.avax_bal * order_size
+        
 
-    # elif(last_row['is_short'][0] != np.nan)
+        account.send_order(_pair = ticker, _type = "sell", _ordertype = "market", 
+                       _price = entry_price, _volume = round(entry_vol,2))
+        # Await?
+        time.sleep(3)
+        print("Long Order Closed!")
+        balance = str(round(account.usd_bal + (account.avax_bal * entry_price),2))
+        log_order_open(last_row['Date'][0],"sell",config.trade_ticker,str(round(last_row['Close'][0],2)),str(entry_vol),balance) # Maybe make a log_order_close()
+    
+        # account.last_entry = entry_price
+        account.is_long = False
+        account.is_short = False
+        # _df['is_short'] = entry_price
 
     
     return _df

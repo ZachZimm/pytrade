@@ -12,12 +12,14 @@ import { localPoint } from "@visx/event"
 import styled from "styled-components";
 
 const get_dev_sma = (d) => d['dev_sma'];
+const get_dev_s_sma = (d) => d['dev_s_sma'];
+const get_dev_s_s_sma = (d) => d['dev_s_s_sma'];
 const get_dev_dir = (d) => d['dev_dir'];
 const get_dev_upper = (d) => d['dev_upper']
 const get_dev_lower = (d) => d['dev_lower']
 const get_close = (d) => d['Close']
 const get_open_long = (d) => d['open_long']
-const get_open_short = (d) => d['open_short']
+const get_close_long = (d) => d['close_long']
 const getXValue = (d) => { return new Date(d['Date']) }
  
 const bisectDate = bisector(getXValue).left;
@@ -33,11 +35,6 @@ const tooltipStyles = {
     color: "white",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
-  };
-
-  const accessors = {
-    xAccessor: d => d['Date'],
-    yAccessor: d => d['dev_sma'],
   };
 
 
@@ -101,8 +98,8 @@ const Chart = (props) => {
     const yScale = scaleLinear({
         range: [height, 0],
         domain: [
-            Math.min(Math.min(...data.map(get_dev_dir))-.025 ,Math.min(...data.map(get_dev_sma))-0.025),
-            Math.max(Math.max(Math.max(...data.map(get_dev_dir))+.025 ,Math.max(...data.map(get_dev_sma))+0.025),0.25)
+            Math.min(Math.min(...data.map(get_dev_dir))-.025 ,Math.min(...data.map(get_dev_s_sma))-0.025),
+            Math.max(Math.max(Math.max(...data.map(get_dev_dir))+.025 ,Math.max(...data.map(get_dev_s_sma))+0.025),0.025)
         ],
     },[data])
 
@@ -114,8 +111,8 @@ const Chart = (props) => {
                         id={`${Math.random()}`}
                         data={data}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y0={(d) => yScale(get_dev_dir(d)) ?? 0}
-                        y1={(d) => yScale(get_dev_sma(d)) ?? 0}
+                        y0={(d) => yScale(get_dev_s_sma(d)) ?? 0}
+                        y1={(d) => yScale(get_dev_s_s_sma(d)) ?? 0}
                         clipAboveTo={0}
                         clipBelowTo={height}
                         curve={curveBasis}
@@ -133,12 +130,32 @@ const Chart = (props) => {
                         key={(d) => `bar-${getXValue(d)}`}
                         x={(d) => xScale(getXValue(d)) ?? 0}
                         y={(d) => yScale(get_dev_sma(d)) ?? 0}
-                        stroke="#EDD2AE"
-                        strokeWidth={1.5}
+                        stroke="#d4841b"
+                        strokeWidth={1.3}
                         curve={curveNatural}
 
                     />
                     <LinePath
+                        data={data}
+                        key={(d) => `bar-${getXValue(d)}`}
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y={(d) => yScale(get_dev_s_sma(d)) ?? 0}
+                        stroke="#EDD2AE"
+                        strokeWidth={1}
+                        curve={curveNatural}
+
+                    />
+                    <LinePath
+                        data={data}
+                        key={(d) => `bar-${getXValue(d)}`}
+                        x={(d) => xScale(getXValue(d)) ?? 0}
+                        y={(d) => yScale(get_dev_s_s_sma(d)) ?? 0}
+                        stroke="springgreen"
+                        strokeWidth={1}
+                        curve={curveNatural}
+
+                    />
+                    {/* <LinePath
                         data={data}
                         key={(d) => `bar-${getXValue(d)}`}
                         x={(d) => xScale(getXValue(d)) ?? 0}
@@ -157,7 +174,7 @@ const Chart = (props) => {
                         strokeWidth={.75}
                         curve={curveNatural}
 
-                    />
+                    /> */}
                     <LinePath
                         data={data}
                         key={Math.random()}
@@ -248,7 +265,7 @@ const Chart = (props) => {
         >
           {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}<br/>
           {/* <br/><b>{get_dev_dir(tooltipData).toFixed(2)}</b><br/> */}
-          {/* <b>{get_dev_sma(tooltipData).toFixed(2)}</b><br/> */}
+          {/* <b>{get_dev_s_sma(tooltipData).toFixed(2)}</b><br/> */}
           Long: <b>{(get_dev_dir(tooltipData)/get_dev_upper(tooltipData)*100).toFixed(2)}%</b><br/>
           Short: <b>{(get_dev_dir(tooltipData)/get_dev_lower(tooltipData)*100).toFixed(2)}%</b>
         </TooltipWithBounds>
