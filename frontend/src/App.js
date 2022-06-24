@@ -46,7 +46,7 @@ const App = () => {
 	const [perfData, setPerfData] = useState([])
 	const [perfLoading, setPerfLoading] = useState(true)
 	const [dataLoading, setDataLoading] = useState(true)
-	const [dataCount, setDataCount] = useState(100)
+	const [dataCount, setDataCount] = useState(400) // Data Count should probably be set somewhere better
 	const [message, setMessage] = useState([{}])
 	const [balance, setBalance] = useState()
 	const [profit, setProfit] = useState(0)

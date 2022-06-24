@@ -8,14 +8,22 @@ import {extent, bisector} from "d3-array"
 import { Group } from "@visx/group";
 import { Line, LinePath, Bar } from "@visx/shape";
 import { curveMonotoneX, curveCardinal, curveCardinalClosed, curveNatural, curveBasis } from "@visx/curve";
+import { MarkerCircle } from '@visx/marker';
 import { localPoint } from "@visx/event"
 import styled from "styled-components";
 
+import { GlyphCircle } from "@visx/glyph";
+const Glyphs = [GlyphCircle]
+
+export const primaryColor = "#8921e0";
+export const secondaryColor = "#00f2ff";
+const contrastColor = "#ffffff";
+
 const get_sma_for_dev = (d) => d['sma_for_dev'];
-const get_dev_dir = (d) => d['dev_dir'];
 const get_close = (d) => d['Close']
 const get_open_long = (d) => d['open_long']
-const get_open_short = (d) => d['open_short']
+const get_half_close = (d) => d['half_close']
+const get_full_close = (d) => d['full_close']
 const getXValue = (d) => { return new Date(d['Date']) }
  
 const bisectDate = bisector(getXValue).left;
@@ -101,6 +109,7 @@ const PriceChart = (props) => {
         <Wrapper>
             <svg ref={ref} width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
                 <Group>
+                    <MarkerCircle id="marker-circle" fill="#333" size={2} refX={2} />
                     <Threshold
                         id={`${Math.random()}`}
                         data={data}
@@ -148,7 +157,7 @@ const PriceChart = (props) => {
                         strokeWidth={1}
                         strokeDasharray="5, 5"
                         curve={curveNatural}
-
+                        shapeRendering="geometricPrecision"
                     />
                     <Bar
                         width={width}
@@ -179,6 +188,51 @@ const PriceChart = (props) => {
                         }}
                         onMouseLeave={() => hideTooltip()}
                     />
+
+                    {data.map((d, j) => (
+                            <circle
+                            key={0 + Math.random()}
+                            r={3.2}
+                            cx={xScale(getXValue(d)) || 0}
+                            cy={yScale(get_open_long(d)) || 0}
+                            // onMouseOver={(e) => dataPointOver(e, JSON.stringify(d))}
+                            // onMouseOut={(e) => {
+                            //     // dataPointOver(e);
+                            //     dataPointOut(e);
+                            // }}
+                            fill="springgreen"
+                            />
+                    ))}
+
+                    {data.map((d, j) => (
+                        <circle
+                        key={0 + Math.random()}
+                        r={3.2}
+                        cx={xScale(getXValue(d)) || 0}
+                        cy={yScale(get_half_close(d)) || 0}
+                        // onMouseOver={(e) => dataPointOver(e, JSON.stringify(d))}
+                        // onMouseOut={(e) => {
+                        //     // dataPointOver(e);
+                        //     dataPointOut(e);
+                        // }}
+                        fill="#FF7E6B"
+                        />
+                    ))}
+
+                    {data.map((d, j) => (
+                        <circle
+                        key={0 + Math.random()}
+                        r={3.2}
+                        cx={xScale(getXValue(d)) || 0}
+                        cy={yScale(get_full_close(d)) || 0}
+                        // onMouseOver={(e) => dataPointOver(e, JSON.stringify(d))}
+                        // onMouseOut={(e) => {
+                        //     // dataPointOver(e);
+                        //     dataPointOut(e);
+                        // }}
+                        fill="#7B3A4E"
+                        />
+                    ))}
                 </Group>
                 
                 

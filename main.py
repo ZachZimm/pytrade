@@ -54,18 +54,18 @@ RESTART_CHART = 'RESTART_CHART'
 RESTART_DATA_COLLECTION = 'RESTART_DATA_COLLECTION'
 RESTART_ACCOUNT = 'RESTART_ACCOUNT'
 SCHEDULER = BackgroundScheduler()
-ACCOUNT = Account( ["ETH/USD","ETH/XBT","BTC/USD","AVAX/USD"] ) # pass in an array from config.py
+ACCOUNT = Account( ["ETH/USD","ETH/XBT","BTC/USD","AVAX/USD", "SOL/USD"] ) # pass in an array from config.py
 
 @app.route("/data", methods=["GET"])
 def serve_data():
     data = {
+            "is_long": ACCOUNT.is_long,
+            "last_entry": ACCOUNT.last_entry,
             "Close": pytrade.AVAXUSD.close, 
             "ticker": config.trade_ticker, 
             "avax_bal": ACCOUNT.avax_bal,
             "usd_bal": ACCOUNT.usd_bal, 
-            "is_long": ACCOUNT.is_long,
-            "is_short": ACCOUNT.is_short,
-            "last_entry": ACCOUNT.last_entry
+            "is_short": ACCOUNT.is_short
             }
     
     return data

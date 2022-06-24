@@ -8,6 +8,7 @@ import { Group } from "@visx/group";
 import { Line, LinePath, Bar } from "@visx/shape";
 import { curveMonotoneX, curveCardinal, curveCardinalClosed, curveNatural, curveBasis } from "@visx/curve";
 import { localPoint } from "@visx/event"
+import { MarkerCircle } from '@visx/marker';
 import { Axis, AxisBottom, AxisLeft } from "@visx/axis";
 import styled from "styled-components";
 import $, { data } from 'jquery'
@@ -90,7 +91,7 @@ const PerformanceChart = (props) => {
             })
             d.push(new_entry)
             setData(d) 
-            // setData(d.slice(-100))
+            // setData(d.slice(-18))
             setLoading(false)
         })
 
@@ -233,6 +234,22 @@ const PerformanceChart = (props) => {
                         }}
                         onMouseLeave={() => hideTooltip()}
                     />
+                    {data.map((d, j) => (
+                            <circle
+                            key={Math.random()}
+                            r={1}
+                            cx={xScale(getXValue(d)) || 0}
+                            cy={yScale(getYValue(d)) || 0}
+                            // onMouseOver={(e) => dataPointOver(e, JSON.stringify(d))}
+                            // onMouseOut={(e) => {
+                            //     // dataPointOver(e);
+                            //     dataPointOut(e);
+                            // }}
+                            // fill="#F5D482"
+                            opacity={0.6}
+                            fill="springgreen"
+                            />
+                        ))}
                 </Group>
                 
             {tooltipData ? (
