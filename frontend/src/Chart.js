@@ -111,8 +111,8 @@ const Chart = (props) => {
                         id={`${Math.random()}`}
                         data={data}
                         x={(d) => xScale(getXValue(d)) ?? 0}
-                        y0={(d) => yScale(get_dev_s_sma(d)) ?? 0}
-                        y1={(d) => yScale(get_dev_s_s_sma(d)) ?? 0}
+                        y0={(d) => yScale(get_dev_s_s_sma(d)) ?? 0}
+                        y1={(d) => yScale(get_dev_s_sma(d)) ?? 0}
                         clipAboveTo={0}
                         clipBelowTo={height}
                         curve={curveBasis}

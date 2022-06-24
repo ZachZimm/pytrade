@@ -41,7 +41,7 @@ def define_signals(df):
     # df['open_short'] = np.where(False, df['Close'] * 1, np.nan) # Sell on dev_dir cross under upper band
 
     # df['open_long'] = np.where(((df['dev_s_s_sma'] < df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) >= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan)                           # Buy on dev_short_sma (crossover) dev_super_short_sma
-    df['open_long'] = np.where(((df['dev_s_s_sma'] < df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) >= df['dev_s_sma'].shift(1)) | ((df['dev_s_s_sma'] < df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) >= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan)
+    df['open_long'] = np.where(((df['dev_s_s_sma'] < df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) >= df['dev_s_sma'].shift(1)) | ((df['dev_s_s_sma'] > df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) <= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan)
     df['open_short'] = np.where(((df['dev_s_sma'] < df['dev_sma'])) & (df['dev_s_sma'].shift(1) >= df['dev_sma'].shift(1)), df['Close'] * 1, np.nan)                                             # Buy on dev_super_short_sma (crossover) dev_short_sma
     df['close_long'] = np.where((df['Close'] < df['min'].shift(1)) & (df['Close'].shift(1) >= df['min'].shift(1)),
                                  df['Close'], np.nan)                        
