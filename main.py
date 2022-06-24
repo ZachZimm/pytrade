@@ -25,6 +25,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 # import riskribbon_strategy_reduced as strategy
 import util.csv as csv
+import util.logger as logger # Implement a use for this here eventually
 import config as config
 
 def round_dt_up(dt, delta):
@@ -127,10 +128,13 @@ if __name__ == "__main__":
     SCHEDULER.start()
     ACCOUNT.get_balances()
     print()
+    if(config.debug is True):
+        print("!!-- Debug Mode ENABLED --!!")
     print("Now:\t\t" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second))
     print("Start:\t\t" + str(data_collect_start.hour) + ":" + str(data_collect_start.minute) + ":" + str(data_collect_start.second))
     print("First Candle:\t" + str(data_collect_start.hour) + ":" + str(data_collect_start.minute + 5) + ":" + str(data_collect_start.second))
     print("\n")    
+    logger.ws_log('trading server started')
     import chart as chart
     chart.strategy = config.strategy # The strategy can be switched out like this, and probably just the same for the backtester
 

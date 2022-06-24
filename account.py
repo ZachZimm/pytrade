@@ -7,6 +7,7 @@ import secret # Websocket API token
 from datetime import datetime
 import config as config
 import util.kraken as kraken
+import util.logger as logger
 
 class Account:
     def __init__(self, tickers): # 'Tickers' is a list of strings
@@ -38,10 +39,10 @@ class Account:
         obj = json.loads(message)
         # print(message)
         # if(obj[0] != 'heartbeat'):
-        if('heartbeat' not in message):
-            print(obj[0][0])
-            print(obj[0][0][0]+", " + obj[0][0][1] + ", " + obj[1])
-            print(message + '\n')
+        # logger.ws_log(message)
+        if not ('heartbeat' in message):
+            # print(obj[0][0][0]+", " + obj[0][0][1] + ", " + obj[1])
+            logger.ws_log(message)
        # if(obj)
         # print("Account Message:\n%s" % message)
         # if ((len(obj) == 4) and ('connectionID' not in obj)): # I don't think this does anything useful here
@@ -94,13 +95,14 @@ class Account:
                 print("Attempting reconnect in %s seconds.." % current_time)
 
     def send_order(self, _pair, _type, _ordertype, _price, _volume):
-        
         print('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
+        
+        logger.ws_log('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
+        logger.ws_log('long order sent!')
         if(config.debug == True):
             print("debug = True")
         else:
             self.ws.send('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
-        
 
         # {"descr":"sell 0.00500000 XBTUSD @ limit 70000.0","event":"addOrderStatus","status":"ok","txid":"OBKJWD-7BDTZ-Z6ADET"} - Order sent
         # [[{"OBKJWD-7BDTZ-Z6ADET":{"avg_price":"0.00000","cost":"0.00000","descr":{"close":null,"leverage":null,"order":"
