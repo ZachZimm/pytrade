@@ -132,8 +132,8 @@ def generate_signals(_df, account):
     profit_target = config.strategy_arguments[3]
     entry_vol = 0
     exit_vol = 0
-    entry_size = 1
-    sell_size = 1
+    entry_size = 0.99
+    sell_size = 0.99
     limit_exit_size = config.trailing_exit_args[0]
     trailing_exit_size = config.trailing_exit_args[1] # % of available balance, this could go in config, but it should probably be dynmaic
     balance_threshold = 0.7 # % of total balance, could go in config too, but also should be dynamic
