@@ -266,8 +266,7 @@ const Chart = (props) => {
           {`${timeFormat("%b %d %H:%M ")(new Date(getXValue(tooltipData)))}`}<br/>
           {/* <br/><b>{get_dev_dir(tooltipData).toFixed(2)}</b><br/> */}
           {/* <b>{get_dev_s_sma(tooltipData).toFixed(2)}</b><br/> */}
-          Long: <b>{(get_dev_dir(tooltipData)/get_dev_upper(tooltipData)*100).toFixed(2)}%</b><br/>
-          Short: <b>{(get_dev_dir(tooltipData)/get_dev_lower(tooltipData)*100).toFixed(2)}%</b>
+          Diff: <b>{((get_dev_s_s_sma(tooltipData)-get_dev_s_sma(tooltipData))*100).toFixed(2)}</b><br/>
         </TooltipWithBounds>
       ) : null}
 

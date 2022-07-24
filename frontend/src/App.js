@@ -32,12 +32,18 @@ import { select, csv, line, curveCardinal, timeFormat, timeParse } from "d3";
 
 const Container = styled.div`
 	background-color: #506B80;
-	width: 900px;
-	height: 400px;
+	width: 57%;
+	min-width: 600px;
+	max-width: 1000px;
+	height: 15%;
+	min-height: 350px;
+	max-height: 400px;
 	border-radius: 40px;
 	position: relative;
 	overflow: hidden
 `;
+
+// width: 900px; height: 400px;
 // min-width: 300px;
 // background-color: #201d47; - purplish
 
@@ -60,28 +66,32 @@ const App = () => {
 	const [signer, setSigner] = useState(null);
 	const [admin, setAdmin] = useState(false);
 
+	const [ruleColor, setRuleColor] = useState("#a7a7a7")	
+	const [currDiff, setCurrDiff] = useState(0)
+
 	const startingBal = 500
 	const startingPrice = 83.8
+	const grayColor = "#a7a7a7" // grey - no particular meaning
+	const downColor = "#ff9c92"
+	const upColor = "#329067"
+	
 
 	$.ajaxSetup({
 		crossDomain: true
 	})
 	const query = async () => {
 		var request = '/data' // This should be passed in as an arg
-		var uri = 'http://47.224.218.20:8080' + request
-		$.getJSON(uri, function(data){
-			// console.log("Response: ", data)
+		var uri = 'http://75.142.33.67:8080' + request
+		var res = $.getJSON(uri, function(data){
 			setBalance(((data.avax_bal * data.Close) + data.usd_bal).toFixed(2))
 			setProfit((((((data.avax_bal * data.Close) + data.usd_bal)/startingBal)-1)*100).toFixed(2)) // This uses a hard-coded starting value
 			setMessage(data)
 		})
-		// setPrice(price + 1)
-		
 		setTimeout(query,5000)
 	}
 
-	const get_strategy_data = () =>{
-        csv('http://47.224.218.20:8080/strategy_data').then( async (d) => {
+	const get_strategy_data = () => {
+        csv('http://75.142.33.67:8080/strategy_data').then( async (d) => {
             await Promise.all(d.map(async(d) => {
                 if(d['dev_sma'] === ""){ d['dev_sma'] = 0}
                 if(d['dev_sma'] === "NaN"){ d['dev_sma'] = 0}
@@ -92,7 +102,7 @@ const App = () => {
                 d['dev_sma'] = Number(d['dev_sma'])
                 d['d'] = Number(d['dev_dir'])
                 d['dev_dir'] = Number(d['dev_dir'])
-				d['sma_for_dev'] = Number(d['sma_for_dev'])
+								d['sma_for_dev'] = Number(d['sma_for_dev'])
                 d['dev_upper'] = Number(d['dev_upper'])
                 d['dev_lower'] = Number(d['dev_lower'])
                 d['Close'] = Number(d['Close'])
@@ -101,15 +111,26 @@ const App = () => {
                 d['y'] = d['Close']
 				// return d
             }))
-			console.log(d)
             setStratData(d.slice(-1 * dataCount))
             setDataLoading(false)
             setTimeout(get_strategy_data,150000) // Check for new data in 2.5 minutes and cause chart to re-render
         })
     }
 
-	const get_performance_data =  () =>{
 
+
+	const set_rule_color = () => {
+		if(message.Close > message.prev_close) { 
+			setRuleColor(upColor)
+		}
+		else if (message.Close < message.prev_close){ 
+			setRuleColor(downColor) 
+		}
+		else { 
+			setRuleColor(grayColor) }
+	}
+
+	const get_performance_data =  () => {
         var current = new Date()
         var dateEntry = current.getFullYear() + "-" +
                     (current.getUTCMonth()+1) + "-" + 
@@ -124,14 +145,14 @@ const App = () => {
             balance: (message.avax_bal * message.Close) + message.usd_bal
         }
 
-        csv('http://47.224.218.20:8080/strategy_log').then( async (d) => {
+				        csv('http://75.142.33.67:8080/strategy_log').then( async (d) => {
             await Promise.all(d.map((d) => {
                 let new_date = (d['Date'].split('.')[0])
                 d['Date'] = new_date
                 d['price'] = Number(d['price'])
             }))
             d.push(new_entry)
-            // console.log(new_entry['Date'])
+						// console.log(new_entry['Date'])
             
             // console.log(dateEntry)
             // d['Date'] = [...d['Date'], dateEntry]
@@ -157,8 +178,9 @@ const App = () => {
 	}, []) // empty array - runs once after first render
 	
 	useEffect(()=>{
-
-	}, [query, get_strategy_data, stratData, get_performance_data, perfData, message, defaultAccount,]);
+		set_rule_color()
+		percentDiff()
+	}, [query, get_strategy_data, stratData, get_performance_data, perfData, message, defaultAccount, ruleColor, currDiff, ]);
 
 	
 	// const pulseGarage = async (e) => {
@@ -199,24 +221,20 @@ const App = () => {
 
 	  const connectWalletHandler = () => {
 		if (window.ethereum && window.ethereum.isMetaMask) {
-
 			window.ethereum.request({ method: 'eth_requestAccounts'})
 			.then(result => {
 				accountChangedHandler(result[0]);
 				setConnButtonText('Wallet Connected');
-                
 			})
 			.catch(error => {
 				setErrorMessage(error.message);
-			
 			});
 
 		} else {
 			console.log('Need to install MetaMask');
-			setErrorMessage('Please install MetaMask browser extension to interact');
+			setErrorMessage('Please install MetaMask browser extension to use this feature')
+			}
 		}
-
-	}
 	// update account, will cause component re-render
 	const accountChangedHandler = async (newAccount) => {
 		setDefaultAccount(newAccount);
@@ -251,6 +269,7 @@ const App = () => {
 			return
 		}
 	}
+
 	
 	if(false)//(defaultAccount === null)
 	{
@@ -262,23 +281,53 @@ const App = () => {
 			</div>
 		)
 	}
+	const percentDiff = () => {
+		var diff  
+		if(message.Close > message.prev_close){
+			diff = (((message.Close - message.prev_close) / message.Close) * 100);
+		} else {
+			diff = -1 * (((message.prev_close - message.Close) / message.Close) * 100);	
+		}
+		return diff.toFixed(2).toString() + "%";
+	}
+
+	const tradePercentDiff = () => {
+		var diff
+		if(message.is_long){
+			if(message.Close > message.last_entry){
+				diff = (((message.Close - message.last_entry) / message.Close) * 100);
+			} else {
+				diff = (((message.last_entry - message.Close) / message.Close) * 100);
+
+			}
+			return diff.toFixed(2).toString() + "%"
+		}
+		else { return }
+	}
+
 	// else
 	// if(chartData !== [])
 	// {
 		return (
 			<div className="App">
 					<h3><InlineIcon icon="logos:ethereum-color"/> {(message.avax_bal * message.Close/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% / {(message.usd_bal/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% <InlineIcon icon="noto:dollar-banknote"/></h3>
+					<hr width="50%" min-width="575px" max-width="890px" color={ruleColor}/>
 					<Container>
 						<PriceChart data={stratData} dataLoading={dataLoading}/>
 					</Container>
 					<Container>
 						<Chart data={stratData} dataLoading={dataLoading}/>
 					</Container>
+					<hr width="50%" min-width="575px" max-width="890px" color={ruleColor}/>
 					{/* <Container>
 						<BarChart />
 					</Container> */}
 					{/* <img src={logo} className="App-logo" alt="logo" /> */}
 					<div>
+						<div>
+							<h3 padding="-1em" margin="-1em">{percentDiff()}</h3>
+							<h3 padding="-1em" margin="-1em">{tradePercentDiff()}</h3>
+						</div>
 						<h2>Bot Profit: {profit}%</h2>
 						<h2>AVAX Profit: {(((message.Close/startingPrice) - 1) * 100).toFixed(2)}%</h2>
 						{renderDollarBalance()}

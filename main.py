@@ -63,6 +63,7 @@ def serve_data():
             "is_long": ACCOUNT.is_long,
             "last_entry": ACCOUNT.last_entry,
             "Close": pytrade.AVAXUSD.close, 
+            "prev_close" : pytrade.AVAXUSD.prev_close,
             "ticker": config.trade_ticker, 
             "avax_bal": ACCOUNT.avax_bal,
             "usd_bal": ACCOUNT.usd_bal, 

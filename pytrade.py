@@ -108,20 +108,9 @@ def ws_thread(*args):
     ws = websocket.WebSocketApp("wss://ws.kraken.com/", on_open = ws_open, on_close=ws_close, on_message = ws_message)
     ws.run_forever()
 
-def log_ws(message):
-    try:
-        with open('data/' + 'ws_messages' + '.log', 'a') as f:
-            f.write(message + '\n')
-            f.close()
-    except:
-        with open('data/' + 'ws_messages' + '.log', 'w') as f:
-            f.write(message + '\n')
-            f.close()
-
 # Define WebSocket callback functions
 def ws_message(ws, message): # Connect to WebSocket API and subscribe to trade feed for XBT/USD
     obj = json.loads(message)
-    log_ws(message)
     if ((len(obj) == 4) and ('connectionID' not in obj)):
     # log_ws(message)
         # print(obj[3] + " : " + obj[1][0][0]) # On each trade, prints stuff like ETH/USD : 2700.00

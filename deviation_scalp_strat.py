@@ -21,7 +21,7 @@ def define_dev(df, dev_length, sma_length, dev_lookback):
 
     return df
 
-def define_min_max(df, min_max_length = 5):
+def define_min_max(df, min_max_length):
     df['min'] = df['Low'].rolling(min_max_length).min()
     df['max'] = df['High'].rolling(min_max_length).max()
 
@@ -85,7 +85,7 @@ def define_indicators(_ticker, _df, _indicators, is_backtest = False): # This sh
         max_lookback = 2000
     # _df = define_hull(_df)
     _df = define_dev(_df, config.strategy_arguments[0], config.strategy_arguments[1], config.strategy_arguments[2]) # length for deviation calc, reference SMA length, deviation lookback, profit target
-    _df = define_min_max(_df,10)
+    _df = define_min_max(_df,config.strategy_arguments[4])
     _df = define_signals(_df)
     _df = find_closes(_df)
     _df.to_csv('data/' + _ticker + '-active_strategy.csv')
@@ -170,19 +170,19 @@ def generate_signals(_df, account):
         log_order_open(last_row['Date'][0],"buy",config.trade_ticker,str(round(last_row['Close'][0],2)),str(entry_vol),balance)
 
         account.last_entry = entry_price
-        account.is_long = True
-        account.is_short = False
+        # account.is_long = True
+        # account.is_short = False
         # _df['is_long'] = entry_price
 
     elif (last_row['full_close'].iloc[0] == last_row['Close'].iloc[0]): # Close a long order 
         entry_price = last_row['Close'].item()
+        account.cancel_all() # there may be open sell orders, so cancel them first
+        time.sleep(2)        # 1?
         
         if((account.usd_bal / entry_price) < (balance_threshold * account.avax_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
-            if(account.is_long):              # presumably, there are open sells - so cancel them before placing a new one
-                account.cancel_all()
-                time.sleep(2)                  # 1?
+            if(account.is_long):             
                 entry_vol = account.avax_bal * sell_size
-            entry_vol = account.avax_bal * sell_size
+                entry_vol = account.avax_bal * sell_size
         elif(((account.usd_bal / entry_price) * balance_threshold) > (account.avax_bal)): # Hi USD, Low AVAX - in a short position OR successful longs
                                         # this needs to be somehow generalized as an argument, (ticker and weights)
             entry_vol = account.avax_bal * sell_size
@@ -196,13 +196,20 @@ def generate_signals(_df, account):
         balance = str(round(account.usd_bal + (account.avax_bal * entry_price),2))
         log_order_open(last_row['Date'][0],"sell",config.trade_ticker,str(round(last_row['Close'][0],2)),str(entry_vol),balance)
     
-        account.is_long = False
-        account.is_short = False
+        # account.is_long = False
+        # account.is_short = False
 
-    if (last_row['is_long'].iloc[0] is last_row['Close'].iloc[0]):
+    
+    # if(crypto_bal >= long_thresh * total_bal): is_long = True
+    if(account.avax_bal * last_row['Close'].iloc[0] >= (account.usd_bal + (account.avax_bal * last_row['Close'].iloc[0])) * config.long_thresh):
         account.is_long = True
-    elif ((account.is_long is not False) and last_row['is_long'].iloc[0] is not last_row['Close'].iloc[0]):
+    else:
         account.is_long = False
+        
+    # if (last_row['is_long'].iloc[0] is last_row['Close'].iloc[0]):
+    #     account.is_long = True
+    # elif ((account.is_long is not False) and last_row['is_long'].iloc[0] is not last_row['Close'].iloc[0]):
+    #     account.is_long = False
 
 
     # elif ((last_row['close_long'].iloc[0] == last_row['Close'].iloc[0]) and (account.is_long)): # I don't want to have to use .iloc[-1] in the conditional, it should be part of last_row

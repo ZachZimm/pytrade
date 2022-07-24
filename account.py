@@ -98,7 +98,10 @@ class Account:
         print('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
         
         logger.ws_log('{"event":"addOrder", "token":"%s", "pair":"%s", "type":"%s", "ordertype":"%s", "price": "%s", "volume":"%s"}' % (secret.WS_Key, _pair, _type, _ordertype, _price, _volume))
-        logger.ws_log('long order sent!')
+        if(_type == 'buy'):
+            logger.ws_log('long order sent!')
+        elif(_type == 'sell'):
+            logger.ws_log('long order closed!')
         if(config.debug == True):
             print("debug = True")
         else:
