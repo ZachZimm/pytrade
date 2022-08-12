@@ -69,8 +69,8 @@ const App = () => {
 	const [ruleColor, setRuleColor] = useState("#a7a7a7")	
 	const [currDiff, setCurrDiff] = useState(0)
 
-	const startingBal = 500
-	const startingPrice = 83.8
+	const startingBal = 173.6 
+	const startingPrice = 1895.41 
 	const grayColor = "#a7a7a7" // grey - no particular meaning
 	const downColor = "#ff9c92"
 	const upColor = "#329067"
@@ -83,8 +83,8 @@ const App = () => {
 		var request = '/data' // This should be passed in as an arg
 		var uri = 'http://75.142.245.55:8080' + request
 		var res = $.getJSON(uri, function(data){
-			setBalance(((data.avax_bal * data.Close) + data.usd_bal).toFixed(2))
-			setProfit((((((data.avax_bal * data.Close) + data.usd_bal)/startingBal)-1)*100).toFixed(2)) // This uses a hard-coded starting value
+			setBalance(((data.active_bal * data.Close) + data.usd_bal).toFixed(2))
+			setProfit((((((data.active_bal * data.Close) + data.usd_bal)/startingBal)-1)*100).toFixed(2)) // This uses a hard-coded starting value
 			setMessage(data)
 		})
 		setTimeout(query,5000)
@@ -142,7 +142,7 @@ const App = () => {
         var new_entry = {
             Date: dateEntry, 
             price: message.Close,
-            balance: (message.avax_bal * message.Close) + message.usd_bal
+            balance: (message.active_bal * message.Close) + message.usd_bal
         }
 
 				        csv('http://75.142.245.55:8080/strategy_log').then( async (d) => {
@@ -156,11 +156,11 @@ const App = () => {
             
             // console.log(dateEntry)
             // d['Date'] = [...d['Date'], dateEntry]
-            // d['balance'] = [...d['balance'],((newData.avax_bal * newData.Close) + newData.usd_bal)]
+            // d['balance'] = [...d['balance'],((newData.active_bal * newData.Close) + newData.usd_bal)]
             // d['price'] = [...d['price'],newData.Close]
             // d['Date'].push(String(dateEntry))
             // d['price'].push(newData.Close)
-            // d['balance'].push((newData.avax_bal * newData.Close) + newData.usd_bal)
+            // d['balance'].push((newData.active_bal * newData.Close) + newData.usd_bal)
             
             
 
@@ -310,7 +310,7 @@ const App = () => {
 	// {
 		return (
 			<div className="App">
-					<h3><InlineIcon icon="logos:ethereum-color"/> {(message.avax_bal * message.Close/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% / {(message.usd_bal/((message.avax_bal * message.Close) + message.usd_bal) * 100).toFixed()}% <InlineIcon icon="noto:dollar-banknote"/></h3>
+					<h3><InlineIcon icon="logos:ethereum-color"/> {(message.active_bal * message.Close/((message.active_bal * message.Close) + message.usd_bal) * 100).toFixed()}% / {(message.usd_bal/((message.active_bal * message.Close) + message.usd_bal) * 100).toFixed()}% <InlineIcon icon="noto:dollar-banknote"/></h3>
 					<hr width="50%" min-width="575px" max-width="890px" color={ruleColor}/>
 					<Container>
 						<PriceChart data={stratData} dataLoading={dataLoading}/>
@@ -329,7 +329,7 @@ const App = () => {
 							<h3 padding="-1em" margin="-1em">{tradePercentDiff()}</h3>
 						</div>
 						<h2>Bot Profit: {profit}%</h2>
-						<h2>AVAX Profit: {(((message.Close/startingPrice) - 1) * 100).toFixed(2)}%</h2>
+						<h2>ETH Profit: {(((message.Close/startingPrice) - 1) * 100).toFixed(2)}%</h2>
 						{renderDollarBalance()}
 					</div>
 					<Container>

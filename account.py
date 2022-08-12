@@ -17,6 +17,7 @@ class Account:
         self.avax_bal = 0.0
         self.usd_bal = 0.0
         self.sol_bal = 0.0
+        self.active_bal = 0.0
         self.last_entry = 0.0
         self.is_long = False
         self.is_short = False
@@ -135,3 +136,11 @@ class Account:
         self.avax_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['AVAX'])
         self.sol_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['SOL'])
         self.usd_bal = float(kraken.get_bal(secret.API_Key, secret.API_Sign)['result']['ZUSD'])
+        if(config.trade_ticker == 'BTCUSD'):
+            self.active_bal = self.btc_bal
+        elif(config.trade_ticker == 'ETHUSD'):
+            self.active_bal = self.eth_bal
+        elif(config.trade_ticker == 'AVAXUSD'):
+            self.active_bal = self.avax_bal
+        elif(config.trade_ticker == 'SOLUSD'):
+            self.active_bal = self.sol_bal

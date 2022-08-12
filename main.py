@@ -34,7 +34,6 @@ def round_dt_up(dt, delta):
 def on_new_candle(event):
     if not event.exception:
         global ACCOUNT
-        ticker = 'AVAXUSD'
         ticker = config.trade_ticker
         df = csv.read_to_df(ticker)
         df.index = pd.DatetimeIndex(df['Date'])
@@ -62,10 +61,12 @@ def serve_data():
     data = {
             "is_long": ACCOUNT.is_long,
             "last_entry": ACCOUNT.last_entry,
-            "Close": pytrade.AVAXUSD.close, 
-            "prev_close" : pytrade.AVAXUSD.prev_close,
+            "Close": pytrade.ETHUSD.close, 
+            "prev_close" : pytrade.ETHUSD.prev_close,
             "ticker": config.trade_ticker, 
+            "active_bal": ACCOUNT.active_bal,
             "avax_bal": ACCOUNT.avax_bal,
+            "eth_bal": ACCOUNT.eth_bal,
             "usd_bal": ACCOUNT.usd_bal, 
             "is_short": ACCOUNT.is_short
             }

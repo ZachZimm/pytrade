@@ -142,11 +142,11 @@ def generate_signals(_df, account):
         entry_price = last_row['Close'].item()
         exit_price = entry_price * profit_target
 
-        if((account.usd_bal / entry_price) < (balance_threshold * account.avax_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
+        if((account.usd_bal / entry_price) < (balance_threshold * account.active_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
             entry_vol = (account.usd_bal * entry_size) / entry_price
-            exit_vol = (account.avax_bal * trailing_exit_size)
+            exit_vol = (account.active_bal * trailing_exit_size)
 
-        elif(((account.usd_bal / entry_price) * balance_threshold) > (account.avax_bal)): # Hi USD, Low AVAX - in a short position OR successful longs
+        elif(((account.usd_bal / entry_price) * balance_threshold) > (account.active_bal)): # Hi USD, Low AVAX - in a short position OR successful longs
                                         # this needs to be somehow generalized as an argument, (ticker and weights)
             if(account.is_short):       # presumably, there are open buys - so cancel them before placing a new one
                 account.cancel_all()    # maybe cancel_buys(ticker), cancel_long(ticker) or switch_side() ?
@@ -166,7 +166,7 @@ def generate_signals(_df, account):
         account.send_order(_pair = ticker, _type = "sell", _ordertype = "limit", 
                             _price = round(exit_price,2), _volume = round(exit_vol,2))
         print("Long Order Sent!")
-        balance = str(round(account.usd_bal + (account.avax_bal * entry_price),2))
+        balance = str(round(account.usd_bal + (account.active_bal * entry_price),2))
         log_order_open(last_row['Date'][0],"buy",config.trade_ticker,str(round(last_row['Close'][0],2)),str(entry_vol),balance)
 
         account.last_entry = entry_price
@@ -179,21 +179,21 @@ def generate_signals(_df, account):
         account.cancel_all() # there may be open sell orders, so cancel them first
         time.sleep(2)        # 1?
         
-        if((account.usd_bal / entry_price) < (balance_threshold * account.avax_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
+        if((account.usd_bal / entry_price) < (balance_threshold * account.active_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
             if(account.is_long):             
-                entry_vol = account.avax_bal * sell_size
-                entry_vol = account.avax_bal * sell_size
-        elif(((account.usd_bal / entry_price) * balance_threshold) > (account.avax_bal)): # Hi USD, Low AVAX - in a short position OR successful longs
+                entry_vol = account.active_bal * sell_size
+                entry_vol = account.active_bal * sell_size
+        elif(((account.usd_bal / entry_price) * balance_threshold) > (account.active_bal)): # Hi USD, Low AVAX - in a short position OR successful longs
                                         # this needs to be somehow generalized as an argument, (ticker and weights)
-            entry_vol = account.avax_bal * sell_size
+            entry_vol = account.active_bal * sell_size
         else:
-            entry_vol = account.avax_bal * sell_size
+            entry_vol = account.active_bal * sell_size
 
         account.send_order(_pair = ticker, _type = "sell", _ordertype = "market", 
                        _price = entry_price, _volume = round(entry_vol,2))
 
         print("Long Order Closed!")
-        balance = str(round(account.usd_bal + (account.avax_bal * entry_price),2))
+        balance = str(round(account.usd_bal + (account.active_bal * entry_price),2))
         log_order_open(last_row['Date'][0],"sell",config.trade_ticker,str(round(last_row['Close'][0],2)),str(entry_vol),balance)
     
         # account.is_long = False
@@ -201,7 +201,7 @@ def generate_signals(_df, account):
 
     
     # if(crypto_bal >= long_thresh * total_bal): is_long = True
-    if(account.avax_bal * last_row['Close'].iloc[0] >= (account.usd_bal + (account.avax_bal * last_row['Close'].iloc[0])) * config.long_thresh):
+    if(account.active_bal * last_row['Close'].iloc[0] >= (account.usd_bal + (account.active_bal * last_row['Close'].iloc[0])) * config.long_thresh):
         account.is_long = True
     else:
         account.is_long = False
@@ -215,22 +215,22 @@ def generate_signals(_df, account):
     # elif ((last_row['close_long'].iloc[0] == last_row['Close'].iloc[0]) and (account.is_long)): # I don't want to have to use .iloc[-1] in the conditional, it should be part of last_row
     #     entry_price = last_row['Close'].item()
         
-    #     if((account.usd_bal / entry_price) < (balance_threshold * account.avax_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
+    #     if((account.usd_bal / entry_price) < (balance_threshold * account.active_bal)): # Hi AVAX, Low USD - in a long position OR successful shorts
     #         if(last_row['Close'] < (account.last_entry * (2-profit_target))):              # presumably, there are open sells - so cancel them before placing a new one
     #             account.cancel_all()
     #             time.sleep(2)                  # 1?
-    #         entry_vol = account.avax_bal * trailing_exit_size
-    #     elif(((account.usd_bal / entry_price) * balance_threshold) > (account.avax_bal)): # Hi USD, Low AVAX - in a short position OR successful longs -- Shouldn't happen here
+    #         entry_vol = account.active_bal * trailing_exit_size
+    #     elif(((account.usd_bal / entry_price) * balance_threshold) > (account.active_bal)): # Hi USD, Low AVAX - in a short position OR successful longs -- Shouldn't happen here
     #                                     # this needs to be somehow generalized as an argument, (ticker and weights)
-    #         entry_vol = account.avax_bal * trailing_exit_size
+    #         entry_vol = account.active_bal * trailing_exit_size
     #     else:
-    #         entry_vol = account.avax_bal * trailing_exit_size
+    #         entry_vol = account.active_bal * trailing_exit_size
         
 
     #     account.send_order(_pair = ticker, _type = "sell", _ordertype = "market", 
     #                    _price = entry_price, _volume = round(entry_vol,2))
     #     print("Short Order Sent!")
-    #     balance = str(round(account.usd_bal + (account.avax_bal * entry_price),2))
+    #     balance = str(round(account.usd_bal + (account.active_bal * entry_price),2))
     #     log_order_open(last_row['Date'][0],"sell",config.trade_ticker,str(round(last_row['Close'][0],2)),str(entry_vol),balance) # Maybe make a log_order_close()
     
     #     # account.last_entry = entry_price
