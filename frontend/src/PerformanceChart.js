@@ -81,7 +81,7 @@ const PerformanceChart = (props) => {
             balance: (newData.avax_bal * newData.Close) + newData.usd_bal
         }
 
-        csv('http://75.142.33.67:8080/strategy_log').then( (d) => {
+        csv('http://box.zzimm.com:8080/strategy_log').then( (d) => {
             d.map((d) => {
                 let new_date = (d['Date'].split('.')[0])
                 d['Date'] = new_date
@@ -106,7 +106,7 @@ const PerformanceChart = (props) => {
 		// var uri = sub[0] +':'+ sub[1]
 
 		// Maybe do if(origin == localhost) {}
-		var uri = 'http://47.224.218.20:8080' + request
+		var uri = 'http://box.zzimm.com:8080' + request
 		// console.log(origin)
 		
 		$.getJSON(uri, function(data){

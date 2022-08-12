@@ -81,7 +81,7 @@ const App = () => {
 	})
 	const query = async () => {
 		var request = '/data' // This should be passed in as an arg
-		var uri = 'http://75.142.33.67:8080' + request
+		var uri = 'http://75.142.245.55:8080' + request
 		var res = $.getJSON(uri, function(data){
 			setBalance(((data.avax_bal * data.Close) + data.usd_bal).toFixed(2))
 			setProfit((((((data.avax_bal * data.Close) + data.usd_bal)/startingBal)-1)*100).toFixed(2)) // This uses a hard-coded starting value
@@ -91,7 +91,7 @@ const App = () => {
 	}
 
 	const get_strategy_data = () => {
-        csv('http://75.142.33.67:8080/strategy_data').then( async (d) => {
+        csv('http://box.zzimm.com:8080/strategy_data').then( async (d) => {
             await Promise.all(d.map(async(d) => {
                 if(d['dev_sma'] === ""){ d['dev_sma'] = 0}
                 if(d['dev_sma'] === "NaN"){ d['dev_sma'] = 0}
@@ -145,7 +145,7 @@ const App = () => {
             balance: (message.avax_bal * message.Close) + message.usd_bal
         }
 
-				        csv('http://75.142.33.67:8080/strategy_log').then( async (d) => {
+				        csv('http://75.142.245.55:8080/strategy_log').then( async (d) => {
             await Promise.all(d.map((d) => {
                 let new_date = (d['Date'].split('.')[0])
                 d['Date'] = new_date
@@ -297,7 +297,7 @@ const App = () => {
 			if(message.Close > message.last_entry){
 				diff = (((message.Close - message.last_entry) / message.Close) * 100);
 			} else {
-				diff = (((message.last_entry - message.Close) / message.Close) * 100);
+				diff = -1 * (((message.last_entry - message.Close) / message.Close) * 100);
 
 			}
 			return diff.toFixed(2).toString() + "%"
