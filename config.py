@@ -4,8 +4,9 @@ import deviation_scalp_strat as strategy
 # SOL [8, 225, 155, 1.009]
 # ETH [20, 215, 130, 1.0085]
 # bad? strategy_arguments = [20, 210, 155, 1.0085, 19]
-strategy_arguments = [18, 200, 100, 1.015, 19]
-    # length for deviation calc, reference SMA length, deviation lookback, profit target, min/max lookback
+# 6month bad? strategy_arguments = [18, 200, 100, 1.015, 19] #1.2, 2.6]
+strategy_arguments = [74, 202, 360, 1.11, 9] #, 10.5, 2.8]
+# length for deviation calc, reference SMA length, deviation lookback, profit target, min/max lookback
 trailing_exit_args = [.05,.95]
 trade_ticker = 'ETHUSD'
 trade_side_1 = 'ETH'

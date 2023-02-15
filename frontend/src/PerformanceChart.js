@@ -13,8 +13,8 @@ import { Axis, AxisBottom, AxisLeft } from "@visx/axis";
 import styled from "styled-components";
 import $, { data } from 'jquery'
 
-const startingBal = 500
-const startingPrice = 83.8
+const startingBal = 173.6
+const startingPrice = 1883.33 
 
 const tickLabelProps = () => ({
     fill: "#a6a6a6",
@@ -78,7 +78,7 @@ const PerformanceChart = (props) => {
         var new_entry = {
             Date: dateEntry, 
             price: newData.Close,
-            balance: (newData.avax_bal * newData.Close) + newData.usd_bal
+            balance: (newData.active_bal * newData.Close) + newData.usd_bal
         }
 
         csv('http://box.zzimm.com:8080/strategy_log').then( (d) => {

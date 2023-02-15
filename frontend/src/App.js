@@ -70,7 +70,7 @@ const App = () => {
 	const [currDiff, setCurrDiff] = useState(0)
 
 	const startingBal = 173.6 
-	const startingPrice = 1895.41 
+	const startingPrice = 1883.33 
 	const grayColor = "#a7a7a7" // grey - no particular meaning
 	const downColor = "#ff9c92"
 	const upColor = "#329067"
@@ -81,7 +81,7 @@ const App = () => {
 	})
 	const query = async () => {
 		var request = '/data' // This should be passed in as an arg
-		var uri = 'http://75.142.245.55:8080' + request
+		var uri = 'http://box.zzimm.com:8080' + request
 		var res = $.getJSON(uri, function(data){
 			setBalance(((data.active_bal * data.Close) + data.usd_bal).toFixed(2))
 			setProfit((((((data.active_bal * data.Close) + data.usd_bal)/startingBal)-1)*100).toFixed(2)) // This uses a hard-coded starting value
@@ -145,7 +145,7 @@ const App = () => {
             balance: (message.active_bal * message.Close) + message.usd_bal
         }
 
-				        csv('http://75.142.245.55:8080/strategy_log').then( async (d) => {
+				        csv('http://box.zzimm.com:8080/strategy_log').then( async (d) => {
             await Promise.all(d.map((d) => {
                 let new_date = (d['Date'].split('.')[0])
                 d['Date'] = new_date

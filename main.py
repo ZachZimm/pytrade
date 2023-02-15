@@ -59,6 +59,7 @@ ACCOUNT = Account( ["ETH/USD","ETH/XBT","BTC/USD","AVAX/USD", "SOL/USD"] ) # pas
 @app.route("/data", methods=["GET"])
 def serve_data():
     data = {
+            "account_bal": (ACCOUNT.usd_bal + (ACCOUNT.active_bal * pytrade.ETHUSD.close)),
             "is_long": ACCOUNT.is_long,
             "last_entry": ACCOUNT.last_entry,
             "Close": pytrade.ETHUSD.close, 

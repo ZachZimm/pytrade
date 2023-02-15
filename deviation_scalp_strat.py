@@ -15,8 +15,8 @@ def define_dev(df, dev_length, sma_length, dev_lookback):
     df['dev_upper'] = dev_bands.bollinger_hband()
     df['dev_sma'] = dev_bands.bollinger_mavg()
     df['dev_lower'] = dev_bands.bollinger_lband()
-    df['dev_s_sma'] = df['dev_dir'].rolling(window=int(dev_lookback/1.2)).mean()
-    df['dev_s_s_sma'] = df['dev_dir'].rolling(window=int(dev_lookback/2.6)).mean()
+    df['dev_s_sma'] = df['dev_dir'].rolling(window=int(dev_lookback/10.5)).mean()
+    df['dev_s_s_sma'] = df['dev_dir'].rolling(window=int(dev_lookback/2.8)).mean()
     df['0'] = 0 # May not be nessecary
 
     return df
@@ -41,7 +41,7 @@ def define_signals(df):
     # df['open_short'] = np.where(False, df['Close'] * 1, np.nan) # Sell on dev_dir cross under upper band
 
     # df['open_long'] = np.where(((df['dev_s_s_sma'] < df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) >= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan)                           # Buy on dev_short_sma (crossover) dev_super_short_sma
-    df['open_long'] = np.where(((df['dev_s_s_sma'] < df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) >= df['dev_s_sma'].shift(1)) | ((df['dev_s_s_sma'] > df['dev_s_sma']) & (True)) & (df['dev_s_s_sma'].shift(1) <= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan)
+    df['open_long'] = np.where(((df['dev_s_s_sma'] > df['dev_s_sma'])) & (df['dev_s_s_sma'].shift(1) <= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan)# | ((df['dev_s_s_sma'] < df['dev_s_sma']) &) & (df['dev_s_s_sma'].shift(1) >= df['dev_s_sma'].shift(1)), df['Close'] * 1, np.nan)
     df['open_short'] = np.where(((df['dev_s_sma'] < df['dev_sma'])) & (df['dev_s_sma'].shift(1) >= df['dev_sma'].shift(1)), df['Close'] * 1, np.nan)                                             # Buy on dev_super_short_sma (crossover) dev_short_sma
     df['close_long'] = np.where((df['Close'] < df['min'].shift(1)) & (df['Close'].shift(1) >= df['min'].shift(1)),
                                  df['Close'], np.nan)                        
@@ -132,8 +132,8 @@ def generate_signals(_df, account):
     profit_target = config.strategy_arguments[3]
     entry_vol = 0
     exit_vol = 0
-    entry_size = 0.99
-    sell_size = 0.99
+    entry_size = 0.985 
+    sell_size = 0.985
     limit_exit_size = config.trailing_exit_args[0]
     trailing_exit_size = config.trailing_exit_args[1] # % of available balance, this could go in config, but it should probably be dynmaic
     balance_threshold = 0.7 # % of total balance, could go in config too, but also should be dynamic
@@ -158,7 +158,7 @@ def generate_signals(_df, account):
         else:                                                           # The ratio of AVAX:USD or USD:AVAX is less than 5:1 (80/20)
             entry_vol = (account.usd_bal * entry_size) / entry_price
             exit_vol = entry_vol * limit_exit_size
-
+#        entry_vol = entry_vol - 0.01 # This is to deal with my (temporarily) low balance
         account.send_order(_pair = ticker, _type = "buy", _ordertype = "market", 
                        _price = entry_price, _volume = round(entry_vol,2))
         # Await?
